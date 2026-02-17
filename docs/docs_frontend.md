@@ -17,6 +17,7 @@
 
 ### History & Management
 - `history.html`: **Booking History** - หน้าดูประวัติการจองทั้งหมด
+    - **API:** `GET /api/user/history` (New)
 - `details.html`: **Booking Details** - หน้าดูรายละเอียดการจองแต่ละรายการ
 
 ### Notifications

@@ -3,7 +3,7 @@ import sqlite3
 import os
 from datetime import datetime
 
-DB_PATH = '/home/pheem49/vscode/Project/-/backend/bookings.db'
+DB_PATH = '/home/pheem49/vscode/Project/Medical-Queue/backend/bookings.db'
 
 def seed_admin():
     conn = sqlite3.connect(DB_PATH)

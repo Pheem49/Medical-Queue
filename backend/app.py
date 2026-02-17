@@ -10,6 +10,7 @@ from routes.doctors import doctors_bp
 from routes.staff import staff_bp
 from routes.notifications import notifications_bp
 from routes.pages import pages_bp
+from routes.history import history_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -21,6 +22,7 @@ app.register_blueprint(doctors_bp)
 app.register_blueprint(staff_bp)
 app.register_blueprint(notifications_bp)
 app.register_blueprint(pages_bp)
+app.register_blueprint(history_bp)
 
 # DB Teardown
 @app.teardown_appcontext

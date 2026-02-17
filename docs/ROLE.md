@@ -35,7 +35,7 @@ Role: datetime, details
 5. นายวุฒิภัทร วิริยเสนกุล
 Role: history, notification
 - `history.html`: **Booking History** - หน้าดูประวัติการจองทั้งหมด
-    - **API:** `GET /api/bookings`
+    - **API:** `GET /api/user/history` (New)
 - `notification.html`: **Notification Center** - หน้าดูรายการแจ้งเตือนต่างๆ
     - **API:** `GET /api/notifications`
 
