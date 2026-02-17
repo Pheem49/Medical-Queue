@@ -43,3 +43,5 @@ Base URL: `http://localhost:5000` (Default Flask Port)
 - **POST** `/api/admin/doctors` เพิ่มรายชื่อแพทย์ใหม่
 - **PUT** `/api/admin/doctors/{doctor_id}` แก้ไขข้อมูลแพทย์ (ตารางออกตรวจ, สถานะ)
 - **DELETE** `/api/admin/doctors/{doctor_id}` ลบรายชื่อแพทย์
+
+--
