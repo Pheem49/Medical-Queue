@@ -33,4 +33,6 @@ Base URL: `http://localhost:5000` (Default Flask Port)
 
 ## Notifications
 - **GET** `/api/notifications` ดึงรายการแจ้งเตือน (นัดหมายใกล้ถึง, จองสำเร็จ)
+
+-------
  
