@@ -33,13 +33,9 @@ Base URL: `http://localhost:5000` (Default Flask Port)
 - **GET** `/api/bookings` ดึงรายการจองทั้งหมด (Admin Dashboard / All History)
 - **PUT** `/api/bookings/{booking_id}` อัพเดทสถานะการจอง (เช่น Check-in, Completed)
 
-### Staff Management
-- **GET** `/api/admin/staff` ดึงรายชื่อเจ้าหน้าที่ทั้งหมด
-- **POST** `/api/admin/staff` สร้างบัญชีเจ้าหน้าที่ใหม่
-- **PUT** `/api/admin/staff/{staff_id}` แก้ไขข้อมูลเจ้าหน้าที่
-- **DELETE** `/api/admin/staff/{staff_id}` ลบบัญชีเจ้าหน้าที่
-
 ### Doctor Management
 - **POST** `/api/admin/doctors` เพิ่มรายชื่อแพทย์ใหม่
 - **PUT** `/api/admin/doctors/{doctor_id}` แก้ไขข้อมูลแพทย์ (ตารางออกตรวจ, สถานะ)
 - **DELETE** `/api/admin/doctors/{doctor_id}` ลบรายชื่อแพทย์
+
+--
