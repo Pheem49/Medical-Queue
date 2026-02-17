@@ -39,6 +39,8 @@
         } else {
           // เก็บชื่อผู้ใช้งานสำหรับใช้ในฟอร์ม
           localStorage.setItem('mq_patientName', user.name);
+          // Clear reschedule state when starting new booking
+          localStorage.removeItem('mq_rescheduleBookingId');
         }
       } catch (e) {
         alert('กรุณาเข้าสู่ระบบก่อนจองคิว');

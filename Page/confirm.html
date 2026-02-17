@@ -213,6 +213,9 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(updatePayload)
             }).then(async res => {
+              if (res.status === 404) {
+                throw new Error('bookings_not_found');
+              }
               if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.error || 'เกิดข้อผิดพลาดในการเลื่อนนัด');
@@ -224,7 +227,15 @@
               try { localStorage.setItem('mq_lastBookingId', data.id); } catch (e) { }
               // navigate to myticket
               window.location.href = 'myticket.html';
-            }).catch(err => alert(err.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาลองใหม่ภายหลัง'));
+            }).catch(err => {
+              if (err.message === 'bookings_not_found' || err.message.includes('not found')) {
+                alert('ไม่พบข้อมูลการจองเดิม (อาจถูกยกเลิกไปแล้ว) กรุณาทำรายการใหม่');
+                localStorage.removeItem('mq_rescheduleBookingId');
+                window.location.href = 'booking.html'; // Redirect to start fresh
+                return;
+              }
+              alert(err.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาลองใหม่ภายหลัง');
+            });
           } else {
             // create new booking
             fetch(API_BASE + '/api/bookings', {

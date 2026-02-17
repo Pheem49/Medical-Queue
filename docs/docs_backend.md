@@ -14,7 +14,7 @@ Base URL: `http://localhost:5000` (Default Flask Port)
 
 ### My Bookings
 - **POST** `/api/bookings` สร้างการจองใหม่ (Booking)
-- **GET** `/api/bookings` ดึงประวัติการจองของฉัน (My Booking History)
+- **GET** `/api/user/history` ดึงประวัติการจองของฉัน (My Booking History) - *New Endpoint (formerly /api/bookings?user_id=...)*
 - **GET** `/api/bookings/{booking_id}` ดูรายละเอียดการจอง
 - **PUT** `/api/bookings/{booking_id}` อัพเดทข้อมูลการจอง (เช่น เลื่อนนัด - Reschedule)
 - **DELETE** `/api/bookings/{booking_id}` ยกเลิกการจอง
