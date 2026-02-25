@@ -97,7 +97,6 @@ def api_get_bookings():
 @api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"])
 def api_update_booking(booking_id):
     pass
-
 # ดึงมาจาก Booking_ID ดูรายละเอียดการจองคิว และอัพเดตสถานะการจองคิว (เช่น ยืนยัน/ยกเลิก)
 
 # -------------------------------------------------
@@ -112,12 +111,11 @@ def api_get_notifications():
 @api_bp.route("/api/bookings", methods=["GET"])
 def api_get_bookings():
     pass
-
 # ดึงการแจ้งเตือนทั้งหมดของผู้ใช้ที่ล็อกอินอยู่ และดึงการจองคิวทั้งหมดของผู้ใช้ที่ล็อกอินอยู่
 
 # -------------------------------------------------
 
-# แฟรงค์
+# แฟรงค์ นายรัชชานนท์ อรรถพันธ์
 
 @api_bp.route("/api/admin/slots", methods=["GET"])
 def api_admin_get_slots():
@@ -130,33 +128,26 @@ def api_admin_get_all_bookings():
 @api_bp.route("/api/admin/bookings/<int:booking_id>", methods=["POST"])
 def api_admin_update_booking_status(booking_id):
     pass
+# ตรวจสอบรายชื่อเข้าตรวจ, ดูประวัติการจองทั้งหมด, จัดการสล็อตเวลา (Manage Slots)
+
+# --------------------------------------------------
+
+# ภีม นายอภิสิทธิ์ พรหมมา
+@api_bp.route("/api/doctors", methods=["GET"])
+def api_get_doctors():
+    pass
 
 @api_bp.route("/api/admin/doctors", methods=["POST"])
 def api_admin_add_doctor():
     pass
 
-# ตรวจสอบ Slot การจองคิวทั้งหมดของแพทย์แต่ละคน ตรวจสอบการจองคิวทั้งหมดของผู้ใช้ทุกคน ดูประวัติการจองทั้งหมด
+@api_bp.route("/api/admin/doctors/<int:doctor_id>", methods=["PUT"])
+def api_admin_update_doctor(doctor_id):
+    pass
 
+@api_bp.route("/api/admin/doctors/<int:doctor_id>", methods=["DELETE"])
+def api_admin_delete_doctor(doctor_id):
+    pass
+
+# จัดการรายชื่อแพทย์ (Manage Doctors สร้าง/อัปเดต/ลบ) และ Admin Home
 # -------------------------------------------------
-
-# ภีม
-
-@api_bp.route("/api/doctors", methods=["GET"])
-def api_get_doctors():
-    pass
-
-
-@api_bp.route("/api/admin/slots", methods=["POST"])
-def api_admin_add_slot():
-    pass
-
-@api_bp.route("/api/admin/slots/<int:slot_id>", methods=["PUT"])
-def api_admin_update_slot(slot_id):
-    pass
-
-@api_bp.route("/api/admin/slots/<int:slot_id>", methods=["DELETE"])
-def api_admin_delete_slot(slot_id):
-    pass
-
-# จัดการเวลาที่ว่างของแพทย์แต่ละคน เพิ่ม Slot การจองคิวใหม่ แก้ไข Slot การจองคิวที่มีอยู่แล้ว ลบ Slot การจองคิวที่ไม่ต้องการ จัดการรายชื่อแพทย์และแผนกของแพทย์แต่ละคน
-# --------------------------------------------------

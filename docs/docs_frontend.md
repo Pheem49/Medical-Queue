@@ -10,8 +10,8 @@
 - `home.html`: **Main Dashboard** - หน้าหลักแสดงเมนูและข้อมูลเบื้องต้น 
 
 ### Booking Process (Flow)
-1. `booking.html`: **Select Logic** - หน้าเลือกแพทย์หรือแผนก  ,
-**Select Schedule** - หน้าเลือกวันและเวลาที่ต้องการจอง 
+1. `booking.html`: **Select Logic** - หน้าเลือกแพทย์หรือแผนก (จิรัฐิติกาล - บอล)
+2. `booking.html`: **Select Schedule** - หน้าเลือกวันและเวลาที่ต้องการจอง (ธีรัช - คิม / ทีปกรณ์ - ปอน)
 3. `confirm.html`: **Confirm Booking** - หน้าตรวจสอบและยืนยันข้อมูลการจอง 
 4. `myticket.html`: **Booking Success,Delete** - หน้าแสดงตั๋ว/QR Code เมื่อจองสำเร็จ และยกเลิกการจอง 
 5. `reschedule.html`: **Reschedule Details** - หน้าเลือกวันและเวลาที่ต้องเลื่อนการจอง 
