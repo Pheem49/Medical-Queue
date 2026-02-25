@@ -9,19 +9,16 @@ api_bp = Blueprint('api', __name__)
 #---------- ### -- Backend routes -- ### ---------->>>
 
 # แป้ง
-@api_bp.route("/api/register", methods=["POST"])
+@api_bp.route("/api/register", methods=["POST"]) # หน้าลงทะเบียนผู้ป่วยใหม่ (Registration Page)
+
 def api_register():
     pass
 
-@api_bp.route("/api/login", methods=["POST"])
+@api_bp.route("/api/login", methods=["POST"])# หน้าเข้าสู่ระบบ (Login Page)
 def api_login():
     pass
 
-@api_bp.route("/api/admin/login", methods=["POST"])
-def api_admin_login():
-    pass
-
-@api_bp.route("/api/logout")
+@api_bp.route("/api/logout", methods=["DELETE"])# ลบ session ของผู้ใช้ที่ล็อกอินอยู่ (Logout)
 def api_logout():
     pass
 
@@ -31,20 +28,19 @@ def api_logout():
 
 
 # บอล
-@api_bp.route("/api/doctors", methods=["GET"])
+@api_bp.route("/api/doctors", methods=["GET"])# เลือกแพทย์
 def api_get_doctors():
     pass
 
-@api_bp.route("/api/departments", methods=["GET"])
-def api_get_departments():
+@api_bp.route("/api/departments", methods=["GET"])# เลือกแผนก
+def api_get_departments_ball():
     pass
 
-@api_bp.route("/api/bookings", methods=["POST"])
+@api_bp.route("/api/bookings", methods=["POST"])# หน้าหน้าตรวจสอบและยืนยันข้อมูลการจอง ไม่ได้ทำ Booking Details
 def api_create_booking():
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
-def api_get_booking(booking_id):
+@api_bp.route("/api/booking/<int:booking_id>", methods=["DELETE"])# การยกเลิกการจอง
     pass
 
 # ดึงข้อมูลแพทย์ทั้งหมด ดึงข้อมูลแผนกทั้งหมด สร้างการจองคิวใหม่ ดึงรายละเอียดการจองคิวตาม ID
@@ -53,19 +49,15 @@ def api_get_booking(booking_id):
 # -------------------------------------------------
 
 # คิม
-@api_bp.route("/api/doctors", methods=["GET"])
-def api_get_doctors():
-    pass
-
-@api_bp.route("/api/departments", methods=["GET"])
+@api_bp.route("/api/departments", methods=["GET"])# สถานะคิวปัจจุบัน แผนก
 def api_get_departments():
     pass
 
-@api_bp.route("/api/bookings", methods=["GET"])
-def api_get_bookings():
+@api_bp.route("/api/admin/login", methods=["POST"])# หน้าเข้าสู่ระบบของเจ้าหน้าที่ (Admin Login)
+def api_admin_login():
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
+@api_bp.route("/api/booking/<int:booking_id>/slot", methods=["GET"])# ดึง slot วันและเวลามาโชว์
 def api_get_booking(booking_id):
     pass
 
@@ -92,10 +84,13 @@ def api_delete_booking(booking_id):
 
 # ฟิล์ม นายพงศกร กอคูณ
 @api_bp.route("/api/bookings", methods=["GET"])
-def api_get_bookings():
+def api_get_bookings_sys():
     pass
 @api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"])
 def api_update_booking(booking_id):
+    pass
+@api_bp.route("/api/booking/<int:booking_id>", methods=["DELETE"])
+def api_system_delete_booking(booking_id):
     pass
 # ดึงมาจาก Booking_ID ดูรายละเอียดการจองคิว และอัพเดตสถานะการจองคิว (เช่น ยืนยัน/ยกเลิก)
 
@@ -109,7 +104,11 @@ def api_get_notifications():
 
 
 @api_bp.route("/api/bookings", methods=["GET"])
-def api_get_bookings():
+def api_get_bookings_sunday():
+    pass
+
+@api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
+def api_system_get_booking(booking_id):
     pass
 # ดึงการแจ้งเตือนทั้งหมดของผู้ใช้ที่ล็อกอินอยู่ และดึงการจองคิวทั้งหมดของผู้ใช้ที่ล็อกอินอยู่
 
@@ -134,7 +133,7 @@ def api_admin_update_booking_status(booking_id):
 
 # ภีม นายอภิสิทธิ์ พรหมมา
 @api_bp.route("/api/doctors", methods=["GET"])
-def api_get_doctors():
+def api_get_doctors_admin():
     pass
 
 @api_bp.route("/api/admin/doctors", methods=["POST"])
