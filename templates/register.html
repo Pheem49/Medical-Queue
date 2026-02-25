@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+<!-- หน้าลงทะเบียนผู้ใช้งาน -->
+{% block content %}
+
+<main class="flex-grow flex flex-col md:flex-row">
+  <div
+    class="w-full md:w-1/2 lg:w-5/12 xl:w-1/3 flex items-center justify-center p-6 md:p-12 bg-white"
+  >
+    <div class="w-full max-w-md">
+      <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+          สร้างบัญชีผู้ใช้งาน
+        </h1>
+        <p class="text-gray-500 text-sm">
+          กรอกข้อมูลส่วนตัวเพื่อเริ่มต้นใช้งานระบบจองคิว
+        </p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form
+        id="registerForm"
+        action="{{ url_for('api.api_register') }}"
+        method="POST"
+        class="space-y-4"
+      >
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >ชื่อจริง</label
+            >
+            <input
+              type="text"
+              name="first_name"
+              class="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-0 transition"
+              placeholder="สมชาย"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >นามสกุล</label
+            >
+            <input
+              type="text"
+              name="last_name"
+              class="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-0 transition"
+              placeholder="ใจดี"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Email</label
+          >
+          <input
+            id="regEmail"
+            name="email"
+            type="email"
+            class="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-0 transition"
+            placeholder="Email"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >เลขบัตรประชาชน</label
+          >
+          <input
+            id="regIdCard"
+            name="idCard"
+            type="text"
+            class="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-0 transition"
+            placeholder="1234567890123"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >วันเดือนปีเกิด</label
+            >
+            <input
+              id="regDob"
+              name="dob"
+              type="date"
+              class="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-0 transition text-gray-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >เบอร์โทรศัพท์</label
+            >
+            <input
+              id="regPhone"
+              name="phone"
+              type="tel"
+              class="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-0 transition"
+              placeholder="081xxxxxxx"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >รหัสผ่าน</label
+          >
+          <input
+            id="regPassword"
+            name="password"
+            type="password"
+            class="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-0 transition"
+            placeholder="กำหนดรหัสผ่าน 8 ตัวขึ้นไป"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >ยืนยันรหัสผ่าน</label
+          >
+          <input
+            id="regConfirmPassword"
+            name="confirm_password"
+            type="password"
+            class="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-0 transition"
+            placeholder="กรอกรหัสผ่านอีกครั้ง"
+            required
+          />
+        </div>
+
+        <div class="flex items-center">
+          <input
+            id="terms"
+            type="checkbox"
+            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label for="terms" class="ml-2 block text-sm text-gray-500">
+            ฉันยอมรับ
+            <a href="{{ url_for('Terms') }}" class="text-blue-600 hover:underline"
+              >เงื่อนไขการให้บริการ</a
+            >
+            และ
+            <a href="{{ url_for('Privacy') }}" class="text-blue-600 hover:underline"
+              >นโยบายความเป็นส่วนตัว</a
+            >
+          </label>
+        </div>
+        <button
+          id="registerBtn"
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg shadow-blue-500/30 transition duration-300 transform hover:-translate-y-0.5 mt-2"
+        >
+          ยืนยันการลงทะเบียน
+        </button>
+      </form>
+
+      <div class="mt-6 text-center border-t border-gray-100 pt-4">
+        <p class="text-gray-600 text-sm">มีบัญชีผู้ใช้งานอยู่แล้ว?</p>
+        <a
+          href="{{ url_for('Login') }}"
+          class="inline-block mt-2 text-blue-600 font-semibold hover:text-blue-800 hover:underline transition"
+        >
+          เข้าสู่ระบบ
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="hidden md:flex md:w-1/2 lg:w-7/12 xl:w-2/3 bg-blue-600 relative overflow-hidden min-h-screen"
+  >
+    <img
+      src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+      alt="Doctors Team"
+      class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40"
+    />
+
+    <div
+      class="absolute inset-0 bg-gradient-to-tr from-blue-700/90 to-cyan-500/80 mix-blend-multiply"
+    ></div>
+
+    <div
+      class="absolute top-10 right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"
+    ></div>
+    <div
+      class="absolute bottom-20 left-20 w-60 h-60 bg-blue-300 opacity-20 rounded-full blur-3xl"
+    ></div>
+
+    <div
+      class="relative z-10 flex flex-col justify-center px-12 lg:px-24 h-full text-white"
+    >
+      <h2 class="text-3xl md:text-4xl font-bold leading-tight mb-6">
+        เริ่มต้นดูแลสุขภาพ<br />ของคุณตั้งแต่วันนี้
+      </h2>
+      <p class="text-blue-100 text-lg mb-8 font-light max-w-md">
+        สมัครสมาชิกเพื่อเข้าถึงบริการทางการแพทย์ที่สะดวกสบาย จองคิวออนไลน์
+        และติดตามประวัติการรักษาได้ด้วยตัวเอง
+      </p>
+
+      <ul class="space-y-4 text-blue-50">
+        <li class="flex items-center gap-3">
+          <svg
+            class="w-5 h-5 text-green-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          ฟรี! ไม่มีค่าใช้จ่ายในการสมัคร
+        </li>
+        <li class="flex items-center gap-3">
+          <svg
+            class="w-5 h-5 text-green-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          ข้อมูลของคุณปลอดภัยด้วยมาตรฐานสูงสุด
+        </li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+{% endblock %}
