@@ -58,7 +58,7 @@ def api_get_departments():
 def api_admin_login():
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>/slot", methods=["GET"])# ดึง slot วันและเวลามาโชว์
+@api_bp.route("/api/booking/<int:booking_id>/slot", methods=["GET"])# ทำสี slot ต่างๆ ตามสถานะคิว (เช่น ว่าง/เต็ม/ไม่ว่าง)
 def api_get_booking(booking_id):
     pass
 
@@ -68,47 +68,42 @@ def api_get_booking(booking_id):
 # ปอน 
 # ดูรายละเอียดการจองคิวของผู้ใช้ เลื่อนวันจองคิวของผู้ใช้ ยกเลิกการจองคิวของผู้ใช้
 
-@api_bp.route("/api/admin/slots", methods=["GET"])
+@api_bp.route("/api/admin/slots", methods=["GET"])# ดึงข้อมูลสล็อตเวลาที่มีอยู่ทั้งหมด (เช่น วันที่และเวลาที่เปิดให้จองคิว) เพื่อแสดงในหน้า Admin Home
 def api_admin_get_slots():
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"])
+@api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"])#  เลือกวันและเวลาเพื่อเลื่อนการจองคิวของผู้ใช้ (Reschedule Booking)
 def api_update_booking(booking_id):
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>", methods=["DELETE"])
-def api_delete_booking(booking_id):
+@api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])# ดูรายละเอียดการจองคิวของผู้ใช้ (Booking Details)/QR code
+def api_get_booking_details(booking_id):
     pass
 
 # -------------------------------------------------
 
 # ฟิล์ม นายพงศกร กอคูณ
 # ดึงมาจาก Booking_ID ดูรายละเอียดการจองคิว และอัพเดตสถานะการจองคิว (เช่น ยืนยัน/ยกเลิก)
-@api_bp.route("/api/bookings", methods=["GET"])
-def api_get_bookings_sys():
+@api_bp.route("/api/admin/bookings", methods=["GET"])# ดูรายการจองทั้งหมด admin (All Bookings)
+def api_get_admin_bookings():
     pass
-@api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"])
-def api_system_update_booking(booking_id):
+@api_bp.route("/api/admin/booking/<int:booking_id>", methods=["GET"])#  ตรวจสอบรายชื่อการจอง admin(Check Booking List)
+def api_get_admin_id_booking(booking_id):
     pass
-@api_bp.route("/api/booking/<int:booking_id>", methods=["DELETE"])
-def api_system_delete_booking(booking_id):
-    pass
-
 # -------------------------------------------------
 
 # ชันเด นายวุฒิภัทร วิริยเสนกุล
 
 # ดึงการแจ้งเตือนทั้งหมดของผู้ใช้ที่ล็อกอินอยู่ และดึงการจองคิวทั้งหมดของผู้ใช้ที่ล็อกอินอยู่
-@api_bp.route("/api/notifications", methods=["GET"])
+@api_bp.route("/api/notifications", methods=["GET"])# ดึงการแจ้งเตือนทั้งหมดของผู้ใช้ที่ล็อกอินอยู่
 def api_get_notifications():
     pass
 
-
-@api_bp.route("/api/bookings", methods=["GET"])
+@api_bp.route("/api/bookings", methods=["GET"])# ดึงการจองคิวทั้งหมดของผู้ใช้ที่ล็อกอินอยู่
 def api_get_bookings_sunday():
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
+@api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])# ระบบตัดคิวอัตโนมัติเมื่อถึงเวลานัดหมาย ถ้าเกินเวลานัดหมายแล้วผู้ใช้ยังไม่มาถึง ระบบจะยกเลิกการจองคิวของผู้ใช้โดยอัตโนมัติ (เช่น อัปเดตสถานะการจองคิวเป็น "No Show")
 def api_system_get_booking(booking_id):
     pass
 
@@ -117,15 +112,15 @@ def api_system_get_booking(booking_id):
 # แฟรงค์ นายรัชชานนท์ อรรถพันธ์
 # ตรวจสอบรายชื่อเข้าตรวจ, ดูประวัติการจองทั้งหมด, จัดการสล็อตเวลา (Manage Slots)
 
-@api_bp.route("/api/admin/slots", methods=["GET"])
+@api_bp.route("/api/admin/slots", methods=["POST"])# 
 def api_admin_get_slots_frank():
     pass
 
-@api_bp.route("/api/admin/bookings", methods=["GET"])
+@api_bp.route("/api/admin/slots", methods=["PUT"])# 
 def api_admin_get_all_bookings():
     pass
 
-@api_bp.route("/api/admin/bookings/<int:booking_id>", methods=["POST"])
+@api_bp.route("/api/admin/slots", methods=["DELETE"])# 
 def api_admin_update_booking_status(booking_id):
     pass
 
