@@ -39,7 +39,7 @@ def api_get_doctors_list():
     # ดึงข้อมูลแพทย์ทั้งหมด (สำหรับหน้าแรก หรือหน้าจอง)
     pass
 
-@api_bp.route("/api/departments", methods=["GET"])# คิม
+@api_bp.route("/api/departments/realtime", methods=["GET"])# คิม
 def api_get_departments_list():
     # ดึงข้อมูลแผนกทั้งหมด
     pass
@@ -54,27 +54,37 @@ def api_get_doctors_by_department(dept_id):
 # 3. ระบบการจองสำหรับผู้ใช้ (User Bookings) - [บอล/ปอน/ชันเด]
 # ==========================================
 
-@api_bp.route("/api/bookings", methods=["POST"])
+@api_bp.route("/api/bookings", methods=["POST"])# บอล
 def api_create_booking():
     # สร้างการจองคิวใหม่
     pass
 
-@api_bp.route("/api/my-bookings", methods=["GET"])
+@api_bp.route("/api/departments", methods=["GET"])# บอล
+def api_get_departments_list():
+    # ดึงข้อมูลแผนกทั้งหมด
+    pass
+
+@api_bp.route("/api/departments/<int:dept_id>/doctors", methods=["GET"])# บอล
+def api_get_doctors_by_department(dept_id):
+    # ดึงรายชื่อแพทย์แยกตามแผนก
+    pass
+
+@api_bp.route("/api/my-bookings", methods=["GET"]) # ซันเด
 def api_get_user_bookings():
     # ดูประวัติการจองทั้งหมดของผู้ใช้ที่ Login อยู่
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
+@api_bp.route("/api/booking/<int:booking_id>", methods=["GET"]) # ปอน
 def api_get_booking_by_id(booking_id):
     # ดูรายละเอียดการจองคิวรายบุคคล / QR Code
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"])
+@api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"]) # ปอน
 def api_reschedule_booking(booking_id):
     # เลื่อนวันนัดหมาย (Update Booking)
     pass
 
-@api_bp.route("/api/booking/<int:booking_id>", methods=["DELETE"])
+@api_bp.route("/api/booking/<int:booking_id>", methods=["DELETE"]) # บอล
 def api_cancel_booking(booking_id):
     # ยกเลิกการจอง
     pass
