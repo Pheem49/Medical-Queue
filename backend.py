@@ -112,35 +112,36 @@ def api_system_get_booking(booking_id):
 # แฟรงค์ นายรัชชานนท์ อรรถพันธ์
 # ตรวจสอบรายชื่อเข้าตรวจ, ดูประวัติการจองทั้งหมด, จัดการสล็อตเวลา (Manage Slots)
 
-@api_bp.route("/api/admin/slots", methods=["POST"])# 
-def api_admin_get_slots_frank():
+@api_bp.route("/api/admin/slots", methods=["POST"])# สร้างสล็อตเวลาที่เปิดให้จองคิว (Create Slot)
+def api_admin_create_slot():
     pass
 
-@api_bp.route("/api/admin/slots", methods=["PUT"])# 
-def api_admin_get_all_bookings():
+@api_bp.route("/api/admin/slots/<int:slot_id>", methods=["PUT"])# แกไขข้อมูลสล็อตเวลาที่มีอยู่ (Update Slot)
+def api_admin_update_slot(slot_id):
+
     pass
 
-@api_bp.route("/api/admin/slots", methods=["DELETE"])# 
-def api_admin_update_booking_status(booking_id):
+@api_bp.route("/api/admin/slots/<int:slot_id>", methods=["DELETE"])# ลบสล็อตเวลาที่มีอยู่ (Delete Slot)
+def api_admin_delete_slot(slot_id):
     pass
 
 # --------------------------------------------------
 
 # ภีม นายอภิสิทธิ์ พรหมมา
 # จัดการรายชื่อแพทย์ (Manage Doctors สร้าง/อัปเดต/ลบ) และ Admin Home
-@api_bp.route("/api/doctors", methods=["GET"])
+@api_bp.route("/api/doctors", methods=["GET"])# ดึงข้อมูลแพทย์ทั้งหมดสำหรับ Admin (Admin Home)
 def api_get_doctors_admin():
     pass
 
-@api_bp.route("/api/admin/doctors", methods=["POST"])
+@api_bp.route("/api/admin/doctors", methods=["POST"])# สร้างแพทย์ใหม่ (Create Doctor)
 def api_admin_add_doctor():
     pass
 
-@api_bp.route("/api/admin/doctors/<int:doctor_id>", methods=["PUT"])
+@api_bp.route("/api/admin/doctors/<int:doctor_id>", methods=["PUT"])# แกไขข้อมูลแพทย์ที่มีอยู่ (Update Doctor)
 def api_admin_update_doctor(doctor_id):
     pass
 
-@api_bp.route("/api/admin/doctors/<int:doctor_id>", methods=["DELETE"])
+@api_bp.route("/api/admin/doctors/<int:doctor_id>", methods=["DELETE"])# ลบแพทย์ที่มีอยู่ (Delete Doctor)
 def api_admin_delete_doctor(doctor_id):
     pass
 
