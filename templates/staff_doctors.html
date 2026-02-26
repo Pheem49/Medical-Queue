@@ -1,44 +1,331 @@
-{% extends "staff_base.html" %} 
+{% extends "staff_base.html" %}
 
 <!-- จัดการรายชื่อแพทย์ -->
 {% block content %}
+<section id="sectionDoctors" class="mb-8 bg-white p-6 rounded-xl shadow-sm relative">
+  <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+    <h3 class="text-xl font-bold flex items-center gap-2 text-gray-700">
+      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+      </svg>
+      จัดการรายชื่อแพทย์
+    </h3>
+    <button onclick="openDoctorModal()"
+      class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      เพิ่มแพทย์
+    </button>
+  </div>
 
-    <section id="sectionDoctors" class="mb-8 bg-white p-6 rounded-xl shadow-sm">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-xl font-bold flex items-center gap-2 text-gray-700">
-          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-          </svg>
-          จัดการรายชื่อแพทย์
-        </h3>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2" disabled title="Coming soon">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-          </svg>
-          เพิ่มแพทย์
-        </button>
-      </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-gray-50 text-gray-600 uppercase text-xs font-semibold">
+          <th class="p-4 border-b">รหัสพนักงาน</th>
+          <th class="p-4 border-b">ชื่อ-สกุล</th>
+          <th class="p-4 border-b">แผนก</th>
+          <th class="p-4 border-b">ความเชี่ยวชาญ</th>
+          <th class="p-4 border-b">สถานะ</th>
+          <th class="p-4 border-b text-center w-32">จัดการ</th>
+        </tr>
+      </thead>
+      <tbody id="doctorTableBody" class="text-sm">
+        <tr>
+          <td colspan="6" class="p-4 text-center text-gray-500">กำลังโหลดข้อมูล...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-50 text-gray-600 uppercase text-xs font-semibold">
-              <th class="p-4 border-b">ลำดับ</th>
-              <th class="p-4 border-b">รหัสพนักงาน</th>
-              <th class="p-4 border-b">ชื่อ-สกุล</th>
-              <th class="p-4 border-b">แผนก</th>
-              <th class="p-4 border-b">ความเชี่ยวชาญ</th>
-              <th class="p-4 border-b">เวลาออกตรวจ</th>
-              <th class="p-4 border-b">สถานะ</th>
-              <th class="p-4 border-b text-center">จัดการ</th>
-            </tr>
-          </thead>
-          <tbody id="doctorTableBody" class="text-sm">
-            <tr><td colspan="8" class="p-4 text-center text-gray-500">ไม่มีข้อมูล</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+<!-- Modal for Add/Edit Doctor -->
+<div id="doctorModal"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 transition-all">
+  <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+    <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+      <h3 id="doctorModalTitle" class="text-xl font-bold text-gray-800 flex items-center gap-2">เพิ่มแพทย์ใหม่</h3>
+      <button onclick="closeDoctorModal()"
+        class="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
 
+    <div class="p-6 overflow-y-auto w-full">
+      <form id="doctorForm" class="space-y-5">
+        <input type="hidden" id="doctorId">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">รหัสพนักงาน/แพทย์</label>
+            <input type="text" id="doctorEmpId" required
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">สถานะ</label>
+            <select id="doctorStatus"
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+              <option value="ว่างวันนี้">ว่างวันนี้</option>
+              <option value="ว่างเช้า">ว่างเช้า</option>
+              <option value="ว่างบ่าย">ว่างบ่าย</option>
+              <option value="เต็มวันนี้">เต็มวันนี้</option>
+              <option value="ลา">ลาพัก</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">ชื่อ</label>
+            <input type="text" id="doctorFirstname" required
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">นามสกุล</label>
+            <input type="text" id="doctorLastname" required
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">ความเชี่ยวชาญ</label>
+          <input type="text" id="doctorSpecialist" required
+            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">แผนกประจำ</label>
+          <div id="departmentCheckboxes"
+            class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <!-- Populated by JS -->
+            <div class="text-sm text-gray-500">กำลังโหลดแผนก...</div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl mt-auto">
+      <button type="button" onclick="closeDoctorModal()"
+        class="px-5 py-2.5 text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-800 rounded-xl font-semibold transition-all shadow-sm">
+        ยกเลิก
+      </button>
+      <button type="button" onclick="saveDoctor()" id="btnSaveDoctor"
+        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-sm flex items-center gap-2">
+        บันทึกข้อมูล
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allDoctors = [];
+  let allDepartments = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchDepartments();
+    fetchDoctors();
+  });
+
+  async function fetchDepartments() {
+    try {
+      const res = await fetch('/api/departments');
+      const data = await res.json();
+      if (data.success) {
+        allDepartments = data.departments;
+        renderDepartmentCheckboxes();
+      }
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  }
+
+  function renderDepartmentCheckboxes() {
+    const container = document.getElementById('departmentCheckboxes');
+    container.innerHTML = '';
+    if (allDepartments.length === 0) {
+      container.innerHTML = '<div class="col-span-full text-sm text-gray-500">ไม่มีข้อมูลแผนก</div>';
+      return;
+    }
+    allDepartments.forEach(dep => {
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2 cursor-pointer p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 shadow-sm hover:shadow-md';
+      label.innerHTML = `
+                    <input type="checkbox" name="departments" value="${dep.department_id}" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                    <span class="text-sm font-medium text-gray-700 truncate" title="${dep.name}">${dep.name}</span>
+                `;
+      container.appendChild(label);
+    });
+  }
+
+  async function fetchDoctors() {
+    try {
+      const res = await fetch('/api/admin/doctors');
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      if (data.success) {
+        allDoctors = data.doctors;
+        renderDoctorTable();
+      }
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      document.getElementById('doctorTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 bg-red-50/50 rounded-xl">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+    }
+  }
+
+  function renderDoctorTable() {
+    const tbody = document.getElementById('doctorTableBody');
+    tbody.innerHTML = '';
+
+    if (allDoctors.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-12 text-center text-gray-500 flex flex-col items-center justify-center gap-3"><svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg><span class="text-sm">ไม่มีข้อมูลแพทย์ในระบบ</span></td></tr>';
+      return;
+    }
+
+    allDoctors.forEach((doc, index) => {
+      const tr = document.createElement('tr');
+      tr.className = "border-b hover:bg-blue-50/50 transition-colors";
+
+      const statusColor = (doc.status.includes('ว่าง') && !doc.status.includes('ไม่')) ? 'text-green-600 bg-green-50 outline-green-200' : 'text-orange-600 bg-orange-50 outline-orange-200';
+      const statusBadge = `<span class="px-3 py-1 text-xs font-bold rounded-full outline outline-1 outline-offset-[-1px] ${statusColor}">${doc.status}</span>`;
+
+      tr.innerHTML = `
+                    <td class="p-4 font-medium text-gray-800">${doc.doctor_id}</td>
+                    <td class="p-4">
+                        <div class="font-bold text-gray-800">${doc.firstname} ${doc.lastname}</div>
+                    </td>
+                    <td class="p-4 text-gray-600">
+                        <div class="flex flex-wrap gap-1">
+                            ${doc.departments.length ? doc.departments.map(d => `<span class="bg-gray-100 px-2 py-0.5 rounded text-xs">${d}</span>`).join('') : '<span class="text-gray-400 italic text-xs">ระบุแผนก</span>'}
+                        </div>
+                    </td>
+                    <td class="p-4 text-gray-600">${doc.specialist}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4 text-center">
+                        <div class="flex justify-center items-center gap-2">
+                            <button onclick="editDoctor(${doc.id})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="แก้ไขข้อมูล">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button onclick="deleteDoctor(${doc.id})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="ลบข้อมูล">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function openDoctorModal(doc = null) {
+    document.getElementById('doctorModal').classList.remove('hidden');
+    document.getElementById('doctorForm').reset();
+
+    // clear checkboxes
+    document.querySelectorAll('input[name="departments"]').forEach(cb => cb.checked = false);
+
+    if (doc) {
+      document.getElementById('doctorModalTitle').innerText = 'แก้ไขข้อมูลแพทย์';
+      document.getElementById('doctorId').value = doc.id;
+      document.getElementById('doctorEmpId').value = doc.doctor_id;
+      document.getElementById('doctorFirstname').value = doc.firstname;
+      document.getElementById('doctorLastname').value = doc.lastname;
+      document.getElementById('doctorSpecialist').value = doc.specialist;
+      document.getElementById('doctorStatus').value = doc.status;
+
+      // check boxes based on departments name check
+      document.querySelectorAll('input[name="departments"]').forEach(cb => {
+        const labelSpan = cb.nextElementSibling.innerText;
+        if (doc.departments.includes(labelSpan)) {
+          cb.checked = true;
+        }
+      });
+    } else {
+      document.getElementById('doctorModalTitle').innerText = 'เพิ่มแพทย์ใหม่';
+      document.getElementById('doctorId').value = '';
+    }
+  }
+
+  function closeDoctorModal() {
+    document.getElementById('doctorModal').classList.add('hidden');
+  }
+
+  function editDoctor(id) {
+    const doc = allDoctors.find(d => d.id === id);
+    if (doc) openDoctorModal(doc);
+  }
+
+  async function saveDoctor() {
+    // Validate form
+    const form = document.getElementById('doctorForm');
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const id = document.getElementById('doctorId').value;
+    const isEdit = !!id;
+
+    // Collect departments
+    const selectedDeps = Array.from(document.querySelectorAll('input[name="departments"]:checked')).map(cb => parseInt(cb.value));
+
+    const payload = {
+      doctor_id: document.getElementById('doctorEmpId').value,
+      firstname: document.getElementById('doctorFirstname').value,
+      lastname: document.getElementById('doctorLastname').value,
+      specialist: document.getElementById('doctorSpecialist').value,
+      status: document.getElementById('doctorStatus').value,
+      department_ids: selectedDeps
+    };
+
+    const url = isEdit ? `/api/admin/doctors/${id}` : '/api/admin/doctors';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+      const btnSave = document.getElementById('btnSaveDoctor');
+      btnSave.disabled = true;
+      btnSave.innerText = 'กำลังบันทึก...';
+
+      const res = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        closeDoctorModal();
+        fetchDoctors(); // Refresh table
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error saving doctor:', error);
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+    } finally {
+      const btnSave = document.getElementById('btnSaveDoctor');
+      btnSave.disabled = false;
+      btnSave.innerText = 'บันทึกข้อมูล';
+    }
+  }
+
+  async function deleteDoctor(id) {
+    if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบแพทย์ท่านนี้?\n(ข้อมูลจะถูกลบอย่างถาวร)')) {
+      try {
+        const res = await fetch(`/api/admin/doctors/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          fetchDoctors(); // Refresh table
+        } else {
+          alert('เกิดข้อผิดพลาด: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error deleting doctor:', error);
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+      }
+    }
+  }
+</script>
 {% endblock %}
