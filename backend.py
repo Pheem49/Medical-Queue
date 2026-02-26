@@ -32,11 +32,11 @@ def api_logout():
 
 # บอล
 @api_bp.route("/api/doctors", methods=["GET"])
-def api_get_doctors():
+def api_get_doctors_ball():
     pass
 
 @api_bp.route("/api/departments", methods=["GET"])
-def api_get_departments():
+def api_get_departments_ball():
     pass
 
 @api_bp.route("/api/bookings", methods=["POST"])
@@ -44,7 +44,7 @@ def api_create_booking():
     pass
 
 @api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
-def api_get_booking(booking_id):
+def api_get_booking_ball(booking_id):
     pass
 
 # ดึงข้อมูลแพทย์ทั้งหมด ดึงข้อมูลแผนกทั้งหมด สร้างการจองคิวใหม่ ดึงรายละเอียดการจองคิวตาม ID
@@ -54,19 +54,19 @@ def api_get_booking(booking_id):
 
 # คิม
 @api_bp.route("/api/doctors", methods=["GET"])
-def api_get_doctors():
+def api_get_doctors_kim():
     pass
 
 @api_bp.route("/api/departments", methods=["GET"])
-def api_get_departments():
+def api_get_departments_kim():
     pass
 
 @api_bp.route("/api/bookings", methods=["GET"])
-def api_get_bookings():
+def api_get_bookings_kim():
     pass
 
 @api_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
-def api_get_booking(booking_id):
+def api_get_booking_kim(booking_id):
     pass
 
 # เลือกวันที่และเวลาที่ต้องการจองคิว ดึงข้อมูลแพทย์ทั้งหมด ดึงข้อมูลแผนกทั้งหมดตาม ID
@@ -76,11 +76,11 @@ def api_get_booking(booking_id):
 # ปอน 
 
 @api_bp.route("/api/admin/slots", methods=["GET"])
-def api_admin_get_slots():
+def api_admin_get_slots_pon():
     pass
 
 @api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"])
-def api_update_booking(booking_id):
+def api_update_booking_pon(booking_id):
     pass
 
 @api_bp.route("/api/booking/<int:booking_id>", methods=["DELETE"])
@@ -92,10 +92,10 @@ def api_delete_booking(booking_id):
 
 # ฟิล์ม นายพงศกร กอคูณ
 @api_bp.route("/api/bookings", methods=["GET"])
-def api_get_bookings():
+def api_get_bookings_film():
     pass
 @api_bp.route("/api/booking/<int:booking_id>", methods=["PUT"])
-def api_update_booking(booking_id):
+def api_update_booking_film(booking_id):
     pass
 # ดึงมาจาก Booking_ID ดูรายละเอียดการจองคิว และอัพเดตสถานะการจองคิว (เช่น ยืนยัน/ยกเลิก)
 
@@ -109,7 +109,7 @@ def api_get_notifications():
 
 
 @api_bp.route("/api/bookings", methods=["GET"])
-def api_get_bookings():
+def api_get_bookings_chande():
     pass
 # ดึงการแจ้งเตือนทั้งหมดของผู้ใช้ที่ล็อกอินอยู่ และดึงการจองคิวทั้งหมดของผู้ใช้ที่ล็อกอินอยู่
 
@@ -118,7 +118,7 @@ def api_get_bookings():
 # แฟรงค์ นายรัชชานนท์ อรรถพันธ์
 
 @api_bp.route("/api/admin/slots", methods=["GET"])
-def api_admin_get_slots():
+def api_admin_get_slots_frank():
     pass
 
 @api_bp.route("/api/admin/bookings", methods=["GET"])
@@ -134,7 +134,7 @@ def api_admin_update_booking_status(booking_id):
 
 # ภีม นายอภิสิทธิ์ พรหมมา
 @api_bp.route("/api/doctors", methods=["GET"])
-def api_get_doctors():
+def api_get_doctors_pheem():
     pass
 
 @api_bp.route("/api/admin/doctors", methods=["POST"])
