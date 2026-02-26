@@ -29,7 +29,7 @@
 
       <form
         id="registerForm"
-        action="{{ url_for('api.api_register') }}"
+        action="{{ url_for('auth.api_register') }}"
         method="POST"
         class="space-y-4"
       >
@@ -147,11 +147,11 @@
           />
           <label for="terms" class="ml-2 block text-sm text-gray-500">
             ฉันยอมรับ
-            <a href="{{ url_for('Terms') }}" class="text-blue-600 hover:underline"
+            <a href="{{ url_for('user.Terms') }}" class="text-blue-600 hover:underline"
               >เงื่อนไขการให้บริการ</a
             >
             และ
-            <a href="{{ url_for('Privacy') }}" class="text-blue-600 hover:underline"
+            <a href="{{ url_for('user.Privacy') }}" class="text-blue-600 hover:underline"
               >นโยบายความเป็นส่วนตัว</a
             >
           </label>
@@ -168,7 +168,7 @@
       <div class="mt-6 text-center border-t border-gray-100 pt-4">
         <p class="text-gray-600 text-sm">มีบัญชีผู้ใช้งานอยู่แล้ว?</p>
         <a
-          href="{{ url_for('Login') }}"
+          href="{{ url_for('auth.Login') }}"
           class="inline-block mt-2 text-blue-600 font-semibold hover:text-blue-800 hover:underline transition"
         >
           เข้าสู่ระบบ

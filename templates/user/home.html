@@ -26,7 +26,7 @@
       <div class="flex gap-2">
         <div class="flex flex-wrap gap-4">
           <a
-            href="{{ url_for('Booking') }}"
+            href="{{ url_for('user.Booking') }}"
             class="bg-white text-blue-600 font-bold py-2 px-4 text-sm sm:text-base rounded-lg shadow hover:bg-gray-50 transition transform hover:-translate-y-0.5 inline-block text-center"
           >
             + จองคิวตรวจใหม่
@@ -34,7 +34,7 @@
         </div>
         <div class="flex flex-wrap gap-4">
           <a
-            href="{{ url_for('Notification') }}"
+            href="{{ url_for('user.Notification') }}"
             class="bg-white text-blue-600 font-bold py-2 px-4 text-sm sm:text-base rounded-lg shadow hover:bg-gray-50 transition transform hover:-translate-y-0.5 inline-block text-center"
           >
             แจ้งเตือน
@@ -108,7 +108,7 @@
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 md:place-items-stretch">
     <a
-      href="{{ url_for('Booking') }}"
+      href="{{ url_for('user.Booking') }}"
       class="w-full bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-400 transition group flex flex-col items-center text-center"
     >
       <div
@@ -133,7 +133,7 @@
     </a>
 
     <a
-      href="{{ url_for('MyTickets') }}"
+      href="{{ url_for('user.MyTickets') }}"
       class="w-full bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-400 transition group flex flex-col items-center text-center"
     >
       <div
@@ -158,7 +158,7 @@
     </a>
 
     <a
-      href="{{ url_for('History') }}"
+      href="{{ url_for('user.History') }}"
       class="w-full bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-400 transition group flex flex-col items-center text-center"
     >
       <div
