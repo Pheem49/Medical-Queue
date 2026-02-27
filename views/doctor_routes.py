@@ -3,16 +3,12 @@ from models import db, Doctor
 
 doctor_bp = Blueprint('doctor', __name__)
 
-@doctor_bp.route("/staff/doctors")
+@doctor_bp.route("/staff/doctors", methods=["GET"])
 def StaffDoctors():
     return render_template("admin/doctors.html", title="Staff Doctors")
 
 @doctor_bp.route("/api/doctors", methods=["GET"])
 def api_get_doctors():
-    return jsonify([])
-
-@doctor_bp.route("/api/admin/doctors", methods=["GET"])
-def api_get_doctors_admin():
     return jsonify([])
 
 @doctor_bp.route("/api/admin/doctors", methods=["POST"])

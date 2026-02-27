@@ -3,11 +3,11 @@ from models import db, Booking
 
 booking_management_bp = Blueprint('booking_management', __name__)
 
-@booking_management_bp.route("/staff/patients")
+@booking_management_bp.route("/staff/patients", methods=["GET"])
 def StaffPatients():
     return render_template("admin/dashboard.html", title="Staff Patients")
 
-@booking_management_bp.route("/staff/history")
+@booking_management_bp.route("/staff/history", methods=["GET"])
 def StaffHistory():
     return render_template("admin/history.html", title="Staff History")
 
@@ -15,14 +15,10 @@ def StaffHistory():
 def api_get_admin_bookings():
     return jsonify([])
 
-@booking_management_bp.route("/api/admin/booking/<int:booking_id>", methods=["GET"])
-def api_get_admin_id_booking(booking_id):
-    return jsonify({})
-
 @booking_management_bp.route("/api/admin/bookings/<int:booking_id>/status", methods=["PUT"])
 def api_update_admin_booking_status(booking_id):
     return jsonify({"status": "success"})
 
-@booking_management_bp.route("/api/admin/booking/<int:booking_id>", methods=["DELETE"])
-def api_delete_admin_booking(booking_id):
+@booking_management_bp.route("/api/bookings/<int:booking_id>", methods=["DELETE"])
+def api_delete_booking(booking_id):
     return jsonify({"status": "success"})

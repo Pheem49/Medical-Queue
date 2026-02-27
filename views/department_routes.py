@@ -3,7 +3,7 @@ from models import db, Department
 
 department_bp = Blueprint('department', __name__)
 
-@department_bp.route("/")
+@department_bp.route("/", methods=["GET"])
 def Home():
     return render_template("user/home.html", title="Home")
 

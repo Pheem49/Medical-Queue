@@ -3,7 +3,7 @@ from models import db, Admin
 
 admin_auth_bp = Blueprint('admin_auth', __name__)
 
-@admin_auth_bp.route("/staff/login")
+@admin_auth_bp.route("/staff/login", methods=["GET"])
 def StaffLogin():
     return render_template("auth/staff_login.html", title="Staff Login")
 
