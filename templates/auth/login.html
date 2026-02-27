@@ -15,13 +15,13 @@
 
       <div class="flex p-1 bg-gray-100 rounded-lg mb-8">
         <a
-          href="{{ url_for('auth.Login') }}"
+          href="{{ url_for('user.Login') }}"
           class="tab-btn w-1/2 py-2.5 text-sm font-semibold rounded-md shadow-sm bg-white text-blue-600 ring-1 ring-black/5 transition-all duration-200 text-center"
         >
           ผู้รับบริการ (คนไข้)
         </a>
         <a
-          href="{{ url_for('auth.StaffLogin') }}"
+          href="{{ url_for('admin_auth.StaffLogin') }}"
           class="tab-btn w-1/2 py-2.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-all duration-200 text-center"
         >
           เจ้าหน้าที่
@@ -38,7 +38,7 @@
         {% endif %}
       {% endwith %}
 
-      <form action="{{ url_for('auth.api_login') }}" method="POST" class="space-y-6">
+      <form action="{{ url_for('user.api_login') }}" method="POST" class="space-y-6">
         <input type="hidden" name="role" id="role-input" value="patient" />
 
         <div id="patient-fields">
@@ -125,7 +125,7 @@
       <div id="register-link" class="mt-8 text-center">
         <p class="text-gray-600 mb-3 text-sm">ยังไม่มีบัญชีผู้ใช้งาน?</p>
         <a
-          href="{{ url_for('auth.Register') }}"
+          href="{{ url_for('user.Register') }}"
           class="block w-full py-3 px-4 rounded-lg border border-gray-200 text-blue-600 font-bold hover:bg-blue-50 hover:border-blue-200 transition duration-300 text-center"
         >
           ลงทะเบียนคนไข้ใหม่
