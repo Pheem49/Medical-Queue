@@ -26,3 +26,15 @@ def api_login():
 @user_bp.route("/api/user/profile", methods=["PUT"])
 def api_update_profile():
     return jsonify({"status": "success"})
+
+@user_bp.route("/notification")
+def Notification():
+    return render_template("user/notification.html", title="Notification")
+
+@user_bp.route("/terms")
+def Terms():
+    return render_template("user/terms.html", title="Terms of Service")
+
+@user_bp.route("/privacy")
+def Privacy():
+    return render_template("user/privacy.html", title="Privacy Policy")
