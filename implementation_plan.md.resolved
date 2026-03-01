@@ -2,11 +2,11 @@
 
 หลังจากตรวจสอบ [models.py](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py) พบว่าโครงสร้างข้อมูลมีทั้งหมด **8 ตารางหลักพอดีเป๊ะ!** ซึ่งนี่เป็นความลงตัวที่สมบูรณ์แบบมากครับ เราสามารถจับคู่ **1 คน = 1 ตารางฐานข้อมูล (Model)** ไปเลย วิธีนี้นอกจากงานจะแฟร์แล้ว ทุกคนยังได้เรียนรู้การดึงข้อมูล (Query) จากตารางของตัวเองได้อย่างลึกซึ้งด้วยครับ
 
----
+
 
 ## 8 ตาราง 8 หน้าที่
 
-### 🧑‍💻 คนที่ 1: ตาราง [User](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#10-31) (จัดการคนไข้)
+### 🧑‍💻 แป้ง : ตาราง [User](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#10-31) (จัดการคนไข้)
 **รับผิดชอบ:** ข้อมูลผู้สมัคร / ผู้ป่วยทั่วไปทั้งหมด 
 **ไฟล์หน้าบ้าน (Route):** `views/user_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/user_service.py`
@@ -18,7 +18,7 @@
 - `GET /terms` / `GET /privacy` (หน้าเงื่อนไขและนโยบาย)
 - **จุดพรีเซนต์:** เน้นเรื่องการตั้ง Unique ให้ Email และเลขบัตรประชาชน
 
-### 🧑‍💻 คนที่ 2: ตาราง [Admin](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#33-44) (จัดการเจ้าหน้าที่)
+### 🧑‍💻 คิม: ตาราง [Admin](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#33-44) (จัดการเจ้าหน้าที่)
 **รับผิดชอบ:** ข้อมูลสิทธิ์การเป็นแอดมินหรือพยาบาล
 **ไฟล์หน้าบ้าน (Route):** `views/admin_auth_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/admin_auth_service.py`
@@ -27,7 +27,7 @@
 - `DELETE /api/logout` (เคลียร์ Session ทั้งของคนไข้และแอดมิน)
 - **จุดพรีเซนต์:** เน้นระบบ Hash รหัสผ่านเจ้าหน้าที่เพื่อความปลอดภัยขั้นสูงสุด และการเช็ครหัสพนักงาน `Employee_id`
 
-### 🧑‍💻 คนที่ 3: ตาราง [Department](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#46-52) (จัดการแผนกการเปิดบริการ)
+### 🧑‍💻 ซันนี้: ตาราง [Department](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#46-52) (จัดการแผนกการเปิดบริการ)
 **รับผิดชอบ:** ลิสต์รายชื่อแผนก และหมวดหมู่การรักษา
 **ไฟล์หน้าบ้าน (Route):** `views/department_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/department_service.py`
@@ -36,7 +36,7 @@
 - `POST /api/admin/departments` (แอดมินเพิ่มแผนกใหม่ เช่น เปิดแผนกตา)
 - `PUT /api/admin/departments/<int:department_id>` (แก้ไขชื่อแผนก)
 
-### 🧑‍💻 คนที่ 4: ตาราง [Doctor](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#54-75) (จัดการประวัติคุณหมอ)
+### 🧑‍💻 แฟรง: ตาราง [Doctor](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#54-75) (จัดการประวัติคุณหมอ)
 **รับผิดชอบ:** ฐานข้อมูลแพทย์รายบุคคล (เพิ่ม/ลบแพทย์)
 **ไฟล์หน้าบ้าน (Route):** `views/doctor_routes.py`
 **ไฟล์หลังบ้าน (Service):** [services/doctor_service.py](file:///c:/My%20document%20etc/Medical/Medical-Queue/services/doctor_service.py)
@@ -47,7 +47,7 @@
 - `DELETE /api/admin/doctors/<int:doctor_id>` (ลบหมอออก)
 - **จุดพรีเซนต์:** โชว์การเก็บโครงสร้างแบบ `JSON` ในตารางที่ทำให้ตารางยืดหยุ่น
 
-### 🧑‍💻 คนที่ 5: ตาราง [DoctorToDepartment](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#77-89) (จัดการความเชี่ยวชาญ / การลิงค์แผนก)
+### 🧑‍💻 ภีม: ตาราง [DoctorToDepartment](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#77-89) (จัดการความเชี่ยวชาญ / การลิงค์แผนก)
 **รับผิดชอบ:** ตารางเชื่อมโยง Many-to-Many ว่าคุณหมอคนไหนอยู่แผนกอะไร
 **ไฟล์หน้าบ้าน (Route):** `views/doctor_department_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/doctor_department_service.py`
@@ -57,7 +57,7 @@
 - `DELETE /api/admin/remove_doctor_dept` (ปลดหมอออกจากแผนก)
 - **จุดพรีเซนต์:** ระบบตารางความสัมพันธ์หลายต่อหลาย (Many-to-Many) ซึ่งเป็นเนื้อหา Database ชั้นสูง
 
-### 🧑‍💻 คนที่ 6: ตาราง [AppointmentSlot](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#91-121) (ตารางเวลาการเปิดเปิดคิว)
+### 🧑‍💻 ฟิม: ตาราง [AppointmentSlot](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#91-121) (ตารางเวลาการเปิดเปิดคิว)
 **รับผิดชอบ:** เวลาแต่ละสล็อตที่พยาบาลหรือหมอเปิดรับคนไข้
 **ไฟล์หน้าบ้าน (Route):** `views/slot_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/slot_service.py`
@@ -67,7 +67,7 @@
 - `PUT /api/admin/slots/<int:slot_id>/status` (สั่งปิดรับคิวชั่วคราว UPDATE สถานะ)
 - **จุดพรีเซนต์:** อัลกอริทึมการเช็คยอดว่า `current_booking` เต็มความจุของ `max_capacity` หรือยัง 
 
-### 🧑‍💻 คนที่ 7: ตาราง [Booking](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#123-148) ฝั่งสร้างและแสดงผลคนไข้ (Create & Read Booking)
+### 🧑‍💻 ปอน: ตาราง [Booking](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#123-148) ฝั่งสร้างและแสดงผลคนไข้ (Create & Read Booking)
 **รับผิดชอบ:** กระบวนการจองแบบเจาะลึก 
 **ไฟล์หน้าบ้าน (Route):** `views/booking_routes.py`
 **ไฟล์หลังบ้าน (Service):** [services/booking_service.py](file:///c:/My%20document%20etc/Medical/Medical-Queue/services/booking_service.py)
@@ -77,7 +77,7 @@
 - `GET /api/booking/<int:booking_id>` (ดึงข้อมูลรายละเอียดการจอง เช่น อาการ และ `qr_code` กลับมา)
 - **จุดพรีเซนต์:** การเชื่อม 3 ตารางใน API เดียว (ต้องเอา ID คนไข้ ไปจองใน Slot ที่มีหมอดูแล) และการสร้างเวลาด้วย `datetime.utcnow`
 
-### 🧑‍💻 คนที่ 8: ตาราง [Booking](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#123-148) ฝั่งควบคุมและอัปเดต (Admin Booking Management)
+### 🧑‍💻 บอล: ตาราง [Booking](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#123-148) ฝั่งควบคุมและอัปเดต (Admin Booking Management)
 **รับผิดชอบ:** หลังบ้านคิวทั้งหมด การเรียกคิว และเปลี่ยนแปลงสถานะคิว
 **ไฟล์หน้าบ้าน (Route):** `views/booking_management_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/booking_management_service.py`
