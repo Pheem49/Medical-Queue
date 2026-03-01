@@ -177,3 +177,6 @@ Thumbs.db
 hospital.db
 uploads/
 #kai
+
+seed_and_test.py
+test_booking.py
