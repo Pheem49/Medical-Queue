@@ -29,6 +29,15 @@ class User(db.Model):
     # รหัสผ่าน (เผื่อความยาวไว้ 120 สำหรับการเข้ารหัสผ่านแบบ Hash ในอนาคต)
     password = db.Column(db.String(120), nullable=False)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "email": self.email,
+            "phone_number": self.phone_number
+        }
+
 
 class Admin(db.Model):
     id_admin = db.Column(db.Integer, primary_key=True)
@@ -49,6 +58,12 @@ class Department(db.Model):
     
     # ชื่อแผนก - ใช้ db.String สำหรับข้อความ (เผื่อความยาวไว้ 100 ตัวอักษร)
     name = db.Column(db.String(100), nullable=False)
+
+    def to_dict(self):
+        return {
+            "department_id": self.department_id,
+            "name": self.name
+        }
 
 
 class Doctor(db.Model):
@@ -72,6 +87,15 @@ class Doctor(db.Model):
     
     # ตารางแพทย์ (ใช้ db.JSON เพื่อเก็บข้อมูลรูปแบบ JSON ตามที่ออกแบบไว้)
     schedule = db.Column(db.JSON, nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "firstname": self.firstname,
+            "lastname": self.lastname,
+            "specialist": self.specialist,
+            "status": self.status
+        }
 
 
 class DoctorToDepartment(db.Model):
@@ -119,6 +143,25 @@ class AppointmentSlot(db.Model):
     # สถานะของคิว (เช่น ว่าง/ไม่ว่าง/ไม่เปิดรับ)
     status = db.Column(db.String(50), nullable=False)
 
+    # Relationships
+    doctor = db.relationship('Doctor', backref=db.backref('slots', lazy=True))
+    department = db.relationship('Department', backref=db.backref('slots', lazy=True))
+
+    def to_dict(self):
+        return {
+            "slot_id": self.slot_id,
+            "doctor_id": self.doctor_id,
+            "department_id": self.department_id,
+            "slot_date": self.slot_date.isoformat(),
+            "start_time": self.start_time.strftime("%H:%M:%S"),
+            "end_time": self.end_time.strftime("%H:%M:%S"),
+            "max_capacity": self.max_capacity,
+            "current_booking": self.current_booking,
+            "status": self.status,
+            "doctor": self.doctor.to_dict() if self.doctor else None,
+            "department": self.department.to_dict() if self.department else None
+        }
+
 
 class Booking(db.Model):
     # กำหนดชื่อตาราง
@@ -145,3 +188,23 @@ class Booking(db.Model):
     
     # คิวอาร์โค้ดการจอง (เก็บเป็นข้อความ/รหัสอ้างอิงของ QR Code)
     qr_code = db.Column(db.String(255), nullable=True)
+
+    # Relationships
+    user = db.relationship('User', backref=db.backref('bookings', lazy=True))
+    slot = db.relationship('AppointmentSlot', backref=db.backref('bookings', lazy=True))
+
+    def to_dict(self, include_user=False, include_slot=False):
+        data = {
+            "id": self.id,
+            "slot_id": self.slot_id,
+            "id_users": self.id_users,
+            "booking_at": self.booking_at.isoformat(),
+            "booking_Status": self.booking_Status,
+            "detail": self.detail,
+            "qr_code": self.qr_code
+        }
+        if include_user and self.user:
+            data["user"] = self.user.to_dict()
+        if include_slot and self.slot:
+            data["slot"] = self.slot.to_dict()
+        return data
