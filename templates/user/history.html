@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+<!-- หน้าประวัติการจองคิว -->
+{% block content %}
+
+<main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
+  <div
+    class="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4"
+  >
+    <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+      <svg
+        class="w-6 h-6 text-blue-600"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+        ></path>
+      </svg>
+      ประวัติ
+    </h1>
+    <div class="flex gap-2">
+      <span class="text-sm text-gray-500 self-center hidden sm:block"
+        >ตัวกรอง:</span
+      >
+      <select
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+      >
+        <option>ทั้งหมด</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="historyContainer" class="space-y-4">
+    <!-- History items will be populated here -->
+    <p class="text-gray-500 text-center py-8">กำลังโหลดข้อมูล...</p>
+  </div>
+
+  {% endblock %}
+</main>

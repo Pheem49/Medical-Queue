@@ -1,0 +1,45 @@
+{% extends "staff_base.html" %} 
+
+<!-- ตรวจสอบรายชื่อผู้ป่วย -->
+{% block content %}
+
+<section class="mb-8 bg-white p-6 rounded-xl shadow-sm">
+  <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-700">
+    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    ตรวจสอบรายชื่อผู้ป่วยวันนี้
+  </h3>
+  
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-gray-50 text-gray-600 uppercase text-xs font-semibold">
+          <th class="p-4 border-b">วันที่</th>
+          <th class="p-4 border-b">เวลา</th>
+          <th class="p-4 border-b">ชื่อ-สกุล</th>
+          <th class="p-4 border-b">แผนก</th>
+          <th class="p-4 border-b">แพทย์</th>
+          <th class="p-4 border-b">สถานะ</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm">
+        <tr>
+          <td colspan="6" class="py-12 text-center text-gray-400">
+            <div class="flex flex-col items-center justify-center">
+              <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              <p class="font-medium">ไม่มีรายการนัดหมายวันนี้</p>
+              <p class="text-xs">รายชื่อจะปรากฏเมื่อมีการจองหรือการเช็คอินเข้ามา</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+{% endblock %}
