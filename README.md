@@ -1,74 +1,93 @@
-# 🏥 Medical-Queue (Hospital Management System)
+# แผนการแบ่งงานตามฐานข้อมูลสำหรับ 8 คน (Database-Driven Architecture)
 
-ระบบบริหารจัดการคิวโรงพยาบาล (Hospital Management System) พัฒนาด้วย **Flask** เพื่ออำนวยความสะดวกในการจองคิวพบแพทย์สำหรับผู้ป่วย และระบบจัดการสำหรับเจ้าหน้าที่ (Admin) ให้ทำงานได้อย่างมีประสิทธิภาพ
+หลังจากตรวจสอบ [models.py](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py) พบว่าโครงสร้างข้อมูลมีทั้งหมด **8 ตารางหลักพอดีเป๊ะ!** ซึ่งนี่เป็นความลงตัวที่สมบูรณ์แบบมากครับ เราสามารถจับคู่ **1 คน = 1 ตารางฐานข้อมูล (Model)** ไปเลย วิธีนี้นอกจากงานจะแฟร์แล้ว ทุกคนยังได้เรียนรู้การดึงข้อมูล (Query) จากตารางของตัวเองได้อย่างลึกซึ้งด้วยครับ
 
-## 🚀 ฟีเจอร์หลัก (Main Features)
+---
 
-### สำหรับผู้ป่วย (Patient)
-- **Authentication**: เข้าสู่ระบบและลงทะเบียนผู้ป่วยใหม่
-- **Booking System**: เลือกจองตามแผนกหรือรายชื่อแพทย์ที่ต้องการ
-- **Schedule Management**: ระบบเลือกวันและเวลาที่สะดวก
-- **Digital Ticket**: รับตั๋วดิจิทัลพร้อม QR Code หลังการจองสำเร็จ
-- **History & Details**: ตรวจสอบประวัติการจองและรายละเอียดการนัดหมาย
-- **Notifications**: ระบบแจ้งเตือนข้อมูลที่สำคัญ
+## 8 ตาราง 8 หน้าที่
 
-### สำหรับเจ้าหน้าที่ (Admin)
-- **Admin Dashboard**: หน้าจอภาพรวมการจัดการระบบ
-- **Doctor Management**: เพิ่ม/ลบ/แก้ไข รายชื่อและข้อมูลแพทย์
-- **Staff Management**: ระบบจัดการข้อมูลเจ้าหน้าที่
-- **Booking Monitoring**: ตรวจสอบและค้นหารายการจองทั้งหมดในระบบ
+### 🧑‍💻 คนที่ 1: ตาราง [User](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#10-31) (จัดการคนไข้)
+**รับผิดชอบ:** ข้อมูลผู้สมัคร / ผู้ป่วยทั่วไปทั้งหมด 
+**ไฟล์หน้าบ้าน (Route):** `views/user_routes.py`
+**ไฟล์หลังบ้าน (Service):** `services/user_service.py`
+- `GET /login` / `GET /register` (หน้าสมัคร/เข้าสู่ระบบ)
+- `POST /api/register` (INSERT สมาชิกใหม่ลงตาราง [User](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#10-31))
+- `POST /api/login` (SELECT เช็ครหัสผ่านใน [User](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#10-31))
+- `PUT /api/user/profile` (UPDATE แก้ไขข้อมูลส่วนตัว เช่น เบอร์โทร)
+- `GET /notification` (หน้าเว็บแจ้งเตือน)
+- `GET /terms` / `GET /privacy` (หน้าเงื่อนไขและนโยบาย)
+- **จุดพรีเซนต์:** เน้นเรื่องการตั้ง Unique ให้ Email และเลขบัตรประชาชน
 
-## 🛠️ Stack ที่ใช้งาน (Tech Stack)
+### 🧑‍💻 คนที่ 2: ตาราง [Admin](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#33-44) (จัดการเจ้าหน้าที่)
+**รับผิดชอบ:** ข้อมูลสิทธิ์การเป็นแอดมินหรือพยาบาล
+**ไฟล์หน้าบ้าน (Route):** `views/admin_auth_routes.py`
+**ไฟล์หลังบ้าน (Service):** `services/admin_auth_service.py`
+- `GET /staff/login` (หน้า Login เจ้าหน้าที่)
+- `POST /api/admin/login` (SELECT เช็ครหัสของแอดมินเปรียบเทียบกับ Hash)
+- `DELETE /api/logout` (เคลียร์ Session ทั้งของคนไข้และแอดมิน)
+- **จุดพรีเซนต์:** เน้นระบบ Hash รหัสผ่านเจ้าหน้าที่เพื่อความปลอดภัยขั้นสูงสุด และการเช็ครหัสพนักงาน `Employee_id`
 
-- **Backend**: Python (Flask)
-- **Database**: SQLite / SQLAlchemy (ORM)
-- **Frontend**: HTML5, CSS3 (Vanilla), JavaScript
-- **API**: RESTful API design
+### 🧑‍💻 คนที่ 3: ตาราง [Department](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#46-52) (จัดการแผนกการเปิดบริการ)
+**รับผิดชอบ:** ลิสต์รายชื่อแผนก และหมวดหมู่การรักษา
+**ไฟล์หน้าบ้าน (Route):** `views/department_routes.py`
+**ไฟล์หลังบ้าน (Service):** `services/department_service.py`
+- `GET /` (หน้า Home ที่แสดงผลหน้าแรกของเว็บ)
+- `GET /api/departments` (SELECT ดึงรายชื่อแผนกทั้งหมดให้หน้าเว็บ)
+- `POST /api/admin/departments` (แอดมินเพิ่มแผนกใหม่ เช่น เปิดแผนกตา)
+- `PUT /api/admin/departments/<int:department_id>` (แก้ไขชื่อแผนก)
 
-## 📂 โครงสร้างโปรเจกต์ (Project Structure)
+### 🧑‍💻 คนที่ 4: ตาราง [Doctor](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#54-75) (จัดการประวัติคุณหมอ)
+**รับผิดชอบ:** ฐานข้อมูลแพทย์รายบุคคล (เพิ่ม/ลบแพทย์)
+**ไฟล์หน้าบ้าน (Route):** `views/doctor_routes.py`
+**ไฟล์หลังบ้าน (Service):** [services/doctor_service.py](file:///c:/My%20document%20etc/Medical/Medical-Queue/services/doctor_service.py)
+- `GET /staff/doctors` (หน้าจัดการหมอหลังบ้าน)
+- `GET /api/doctors` (ดึงรายชื่อหมอไปโชว์ในเว็บ)
+- `POST /api/admin/doctors` (INSERT หมอใหม่)
+- `PUT /api/admin/doctors/<int:doctor_id>` (UPDATE เปลี่ยนสถานะหรือตารางเวลา `schedule` ที่เป็น JSON)
+- `DELETE /api/admin/doctors/<int:doctor_id>` (ลบหมอออก)
+- **จุดพรีเซนต์:** โชว์การเก็บโครงสร้างแบบ `JSON` ในตารางที่ทำให้ตารางยืดหยุ่น
 
-```text
-Medical-Queue/
-├── app.py              # ไฟล์หลักสำหรับรัน Flask App
-├── backend.py          # การจัดการ API Routes (Blueprints)
-├── models.py           # โครงสร้างฐานข้อมูล (Database Schema)
-├── docs/               # เอกสารประกอบโครงการ (API & UI Docs)
-├── static/             # ไฟล์ Static (CSS, JS, Images)
-├── templates/          # ไฟล์ HTML Templates
-└── requirements.txt    # รายการ Dependencies
-```
+### 🧑‍💻 คนที่ 5: ตาราง [DoctorToDepartment](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#77-89) (จัดการความเชี่ยวชาญ / การลิงค์แผนก)
+**รับผิดชอบ:** ตารางเชื่อมโยง Many-to-Many ว่าคุณหมอคนไหนอยู่แผนกอะไร
+**ไฟล์หน้าบ้าน (Route):** `views/doctor_department_routes.py`
+**ไฟล์หลังบ้าน (Service):** `services/doctor_department_service.py`
+- `GET /api/department/<int:department_id>/doctors` (SELECT หาหมอทั้งหมดที่อยู่ในแผนก A)
+- `GET /api/doctor/<int:doctor_id>/departments` (SELECT เช็คว่าคุณหมอคนนี้ประจำอยู่แผนกไหนบ้าง)
+- `POST /api/admin/assign_doctor` (เอาหมอไปผูกกับแผนก สร้างลิงค์ ForeignKey 2 ทาง)
+- `DELETE /api/admin/remove_doctor_dept` (ปลดหมอออกจากแผนก)
+- **จุดพรีเซนต์:** ระบบตารางความสัมพันธ์หลายต่อหลาย (Many-to-Many) ซึ่งเป็นเนื้อหา Database ชั้นสูง
 
-## 👥 ทีมงานและหน้าที่ประกอบ (Team & Responsibilities)
+### 🧑‍💻 คนที่ 6: ตาราง [AppointmentSlot](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#91-121) (ตารางเวลาการเปิดเปิดคิว)
+**รับผิดชอบ:** เวลาแต่ละสล็อตที่พยาบาลหรือหมอเปิดรับคนไข้
+**ไฟล์หน้าบ้าน (Route):** `views/slot_routes.py`
+**ไฟล์หลังบ้าน (Service):** `services/slot_service.py`
+- `GET /staff/checkin` (หน้า Scanner สำหรับเช็คอิน)
+- `POST /api/admin/slots` (พยาบาลกดสร้างตารางคิวรายวัน)
+- `GET /api/admin/slots` (SELECT หาสล็อตที่ยังว่างและยอด `current_booking` < `max_capacity`)
+- `PUT /api/admin/slots/<int:slot_id>/status` (สั่งปิดรับคิวชั่วคราว UPDATE สถานะ)
+- **จุดพรีเซนต์:** อัลกอริทึมการเช็คยอดว่า `current_booking` เต็มความจุของ `max_capacity` หรือยัง 
 
-| ลำดับ | รายชื่อ | หน้าที่ความรับผิดชอบ (Frontend & Backend) |
-| :--- | :--- | :--- |
-| 1 | **นางสาวกฤติมา (แป้ง)** | Authentication (Login, Register, Admin Login) |
-| 2 | **นายจิรัฐิติกาล (บอล)** | Booking & Confirm (Doctor selection, QR Code) |
-| 3 | **นายธีรัช (คิม)** | Home & Datetime (Dashboard, Schedule) |
-| 4 | **นายทีปกรณ์ (ปอน)** | Datetime & Details (Reschedule, Booking details) |
-| 5 | **นายพงศกร (ฟิล์ม)** | QR Code Scan & Cancel Booking (Admin check list) |
-| 6 | **นายวุฒิภัทร (ชันเด)** | History & Notification (Notification Center) |
-| 7 | **นายรัชชานนท์ (แฟรงค์)** | Admin (Manage Slots, Booking history) |
-| 8 | **นายอภิสิทธิ์ (ภีม)** | Admin (Manage Doctors, Admin Home) |
+### 🧑‍💻 คนที่ 7: ตาราง [Booking](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#123-148) ฝั่งสร้างและแสดงผลคนไข้ (Create & Read Booking)
+**รับผิดชอบ:** กระบวนการจองแบบเจาะลึก 
+**ไฟล์หน้าบ้าน (Route):** `views/booking_routes.py`
+**ไฟล์หลังบ้าน (Service):** [services/booking_service.py](file:///c:/My%20document%20etc/Medical/Medical-Queue/services/booking_service.py)
+- `GET /booking` (หน้า UI ให้คนไข้ทำรายการ)
+- `POST /api/bookings` (กระบวนการรับ `slot_id` และ `id_users` มาทำการสร้างคิว)
+- `GET /mytickets` / `GET /history` (หน้าเช็คประวัติของฉันและประวัติย้อนหลัง)
+- `GET /api/booking/<int:booking_id>` (ดึงข้อมูลรายละเอียดการจอง เช่น อาการ และ `qr_code` กลับมา)
+- **จุดพรีเซนต์:** การเชื่อม 3 ตารางใน API เดียว (ต้องเอา ID คนไข้ ไปจองใน Slot ที่มีหมอดูแล) และการสร้างเวลาด้วย `datetime.utcnow`
 
-## 💻 วิธีการติดตั้งและรันโปรเจกต์ (Setup)
+### 🧑‍💻 คนที่ 8: ตาราง [Booking](file:///C:/My%20document%20etc/Medical/Medical-Queue/models.py#123-148) ฝั่งควบคุมและอัปเดต (Admin Booking Management)
+**รับผิดชอบ:** หลังบ้านคิวทั้งหมด การเรียกคิว และเปลี่ยนแปลงสถานะคิว
+**ไฟล์หน้าบ้าน (Route):** `views/booking_management_routes.py`
+**ไฟล์หลังบ้าน (Service):** `services/booking_management_service.py`
+- `GET /staff/patients` / `GET /staff/history` (หน้าจอรวมประวัติคิวแอดมินและประวัติย้อนหลัง)
+- `GET /api/admin/bookings` (ดึงทุกคิวทั้งโรงพยาบาล)
+- `PUT /api/admin/bookings/<int:booking_id>/status` (พยาบาลกดปุ่ม เพื่อประทับตรา "เข้ารับบริการแล้ว" หรือ "ข้ามคิว")
+- `DELETE /api/bookings/<int:booking_id>` (คนไข้หรือเจ้าหน้าที่ขอยกเลิก/ลบคิว)
+- **จุดพรีเซนต์:** เมื่อลบหรืออัปเดตสถานะคิวเสร็จแล้ว จะมีการเขียนโค้ดกลับไปอัปเดต (ลด) ตัวเลขคิว `current_booking` ให้คนที่ 6 ด้วย (เป็น Logic ข้ามตารางที่สำคัญมาก)
 
-1. **Clone โปรเจกต์**
-   ```bash
-   git clone <repository-url>
-   cd Medical-Queue
-   ```
+---
 
-2. **สร้าง Virtual Environment และติดตั้ง Dependencies**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # สำหรับ Linux/Mac
-   venv\Scripts\activate # สำหรับ Windows
-   pip install -r requirements.txt
-   ```
-
-3. **รันเซิร์ฟเวอร์**
-   ```bash
-   python app.py
-   ```
-   จากนั้นเปิด Browser ไปที่ `http://127.0.0.1:5000`
+### บทสรุป 
+จับคู่แบบนี้ **ยุติธรรมขั้นสุดยอดครับ** เพราะแบ่งจาก Database 8 ตารางเป๊ะๆ ทุกคนจะได้เขียนโค้ด CRUD (Create, Read, Update, Delete) ครบทุกมิติของตารางตัวเอง โดยมีจุดขายเชิงเทคนิคไปนำเสนออาจารย์แตกต่างกันไปด้วยครับ!
