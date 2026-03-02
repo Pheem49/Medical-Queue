@@ -10,7 +10,10 @@ def BookingPage():
 
 @booking_bp.route("/api/bookings", methods=["POST"])
 def api_create_booking():
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    
+    if data is None:
+        return jsonify({"status": "error", "message": "ไม่สามารถอ่านข้อมูล JSON ได้ กรุณาตรวจสอบ Content-Type หรือรูปแบบ JSON"}), 400
     
     # รับค่าจาก Request
     slot_id = data.get('slot_id')

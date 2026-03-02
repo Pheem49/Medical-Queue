@@ -180,3 +180,8 @@ uploads/
 
 seed_and_test.py
 test_booking.py
+test.py
+test_api_v2.py
+create_user_v2.py
+check_db.py
+test_booking_logic.py
