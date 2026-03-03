@@ -1,7 +1,7 @@
 from app import app
 from models import db, Doctor
 import json
-
+#แก้ไขนิดหน่อย
 def seed_doctors():
     with app.app_context():
         # ข้อมูลจำลองของหมอ
