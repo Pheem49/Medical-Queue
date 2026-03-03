@@ -53,15 +53,25 @@
             try {
               const response = await fetch('/api/departments');
               if (response.ok) {
-                const departments = await response.json();
+              const data = await response.json();
+              // เช็คว่าถ้าเป็น JSON แบบมี {success: true, departments: [...]} ก็ดึงมาตามนั้น
+              // หรือถ้าเป็น Array เปล่าๆ ก็ใช้ตัวมันเองได้เลย
+              const departments = data.departments || data;
+              
+              if (departments && Array.isArray(departments)) {
                 departmentSelect.innerHTML = '<option value="" disabled selected>กรุณาเลือกแผนก</option>';
                 departments.forEach(dept => {
                   const option = document.createElement('option');
-                  option.value = dept.name; // หรือ dept.id ขึ้นอยู่กับการนำไปใช้ต่อ
+                  // อ้างอิง property ให้ตรงกับที่ to_dict() ส่งมา เช่น department_id
+                  const deptId = dept.department_id || dept.id;
+                  option.value = dept.name; 
                   option.textContent = dept.name;
-                  option.dataset.id = dept.id;
+                  option.dataset.id = deptId;
                   departmentSelect.appendChild(option);
                 });
+              } else {
+                departmentSelect.innerHTML = '<option value="" disabled selected>ไม่พบข้อมูลแผนก</option>';
+              }
               } else {
                 departmentSelect.innerHTML = '<option value="" disabled selected>เกิดข้อผิดพลาดในการโหลดข้อมูล</option>';
               }
