@@ -163,7 +163,7 @@
 
   async function fetchDoctors() {
     try {
-      const res = await fetch('/api/admin/doctors');
+      const res = await fetch('/api/doctors');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       if (data.success) {
