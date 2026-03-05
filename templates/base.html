@@ -58,7 +58,7 @@
        <span class="text-xs font-bold whitespace-nowrap">ออกจากระบบ</span> 
     </a>
   {% else %}
-    {%- if request.endpoint not in ['auth.Login', 'auth.StaffLogin', 'auth.Register'] -%}
+    {%- if request.endpoint not in ['user.Login', 'admin_auth.StaffLogin', 'user.Register'] -%}
     <a id="userStatusLink" href="{{ url_for('user.Login') }}" 
        class="hidden sm:flex items-center gap-1 sm:gap-2 text-blue-600 font-bold hover:underline transition-all text-xs sm:text-sm lg:text-base whitespace-nowrap">
          
