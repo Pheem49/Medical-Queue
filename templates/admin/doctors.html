@@ -11,7 +11,7 @@
       </svg>
       จัดการรายชื่อแพทย์
     </h3>
-    <button onclick="openDoctorModal()"
+    <button onclick="openUnifiedModal(null)"
       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 transition-all">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -29,7 +29,7 @@
           <th class="p-4 border-b">แผนก</th>
           <th class="p-4 border-b">ความเชี่ยวชาญ</th>
           <th class="p-4 border-b">สถานะ</th>
-          <th class="p-4 border-b text-center w-32">จัดการ</th>
+          <th class="p-4 border-b text-center w-40">จัดการ</th>
         </tr>
       </thead>
       <tbody id="doctorTableBody" class="text-sm">
@@ -41,94 +41,219 @@
   </div>
 </section>
 
-<!-- Modal for Add/Edit Doctor -->
-<div id="doctorModal"
-  class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 transition-all">
-  <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-    <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-      <h3 id="doctorModalTitle" class="text-xl font-bold text-gray-800 flex items-center gap-2">เพิ่มแพทย์ใหม่</h3>
-      <button onclick="closeDoctorModal()"
-        class="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+<!-- Modal for Combined Doctor and Slot Management -->
+<div id="unifiedDoctorModal"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 transition-all overflow-y-auto">
+  <div
+    class="bg-white rounded-2xl w-full max-w-6xl shadow-2xl flex flex-col lg:flex-row relative my-auto lg:h-[85vh] overflow-hidden">
+
+    <!-- Close Button (Absolute overlay for the modal) -->
+    <button onclick="closeUnifiedModal()"
+      class="absolute top-4 right-4 z-50 text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 bg-white shadow-sm border border-gray-100">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+
+    <!-- Left Side: Doctor Info -->
+    <div
+      class="w-full lg:w-[45%] flex flex-col border-b lg:border-b-0 lg:border-r border-gray-100 bg-white relative top-0 h-auto lg:h-full overflow-y-auto">
+      <div class="p-6 lg:p-8 flex-grow">
+        <h3 id="unifiedModalTitle" class="text-xl font-bold text-gray-800 mb-6">แก้ไขข้อมูลแพทย์</h3>
+
+        <form id="doctorForm" class="space-y-6">
+          <input type="hidden" id="doctorId">
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">ชื่อ-สกุล</label>
+            <div class="grid grid-cols-2 gap-3">
+              <input type="text" id="doctorFirstname" placeholder="ชื่อ" required
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+              <input type="text" id="doctorLastname" placeholder="นามสกุล" required
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">รหัสพนักงาน (Doctor ID)</label>
+              <input type="text" id="doctorEmpId" required
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">แผนก</label>
+              <select id="doctorDepartment" required
+                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">สถานะ</label>
+              <select id="doctorStatus"
+                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                <option value="ว่างวันนี้">ว่างวันนี้</option>
+                <option value="ว่างเช้า">ว่างเช้า</option>
+                <option value="ว่างบ่าย">ว่างบ่าย</option>
+                <option value="เต็มวันนี้">เต็มวันนี้</option>
+                <option value="ลา">ลาพัก</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">ความเชี่ยวชาญ</label>
+              <input type="text" id="doctorSpecialist" required
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Left Footer Buttons (Mobile & Desktop) -->
+      <div class="p-6 border-t border-gray-100 flex justify-end gap-3 bg-white sticky bottom-0 z-10 w-full mt-auto">
+        <button type="button" onclick="closeUnifiedModal()"
+          class="px-5 py-2.5 text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl font-semibold transition-all">
+          ยกเลิก
+        </button>
+        <button type="button" onclick="saveDoctor()" id="btnSaveDoctor"
+          class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-sm">
+          บันทึกข้อมูล
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Side: Slots Management -->
+    <div class="w-full lg:w-[55%] flex flex-col bg-gray-50 relative h-[600px] lg:h-full lg:overflow-y-auto">
+
+      <!-- Overlay block slots if adding new doctor -->
+      <div id="slotOverlay"
+        class="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center hidden">
+        <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+          </path>
         </svg>
-      </button>
+        <p class="text-gray-600 font-medium text-center px-4">กรุณาบันทึกข้อมูลแพทย์ก่อนจัดการเวลาตรวจ</p>
+      </div>
+
+      <div class="p-6 lg:p-8 flex-grow flex flex-col gap-6">
+        <h3 class="text-lg font-bold text-gray-700 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          จัดการเวลาตรวจ (Slots)
+        </h3>
+
+        <!-- Slot Add Form Box -->
+        <div class="bg-blue-50/50 border border-blue-100 p-5 rounded-xl text-sm shadow-sm">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block font-semibold text-blue-800 mb-1">วันที่</label>
+              <input type="date" id="slotDate"
+                onchange="document.getElementById('filterSlotDate').value=this.value; fetchDoctorSlots();"
+                class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block font-semibold text-blue-800 mb-1">จำนวนสูงสุด/รอบ</label>
+              <input type="number" id="slotCapacity" value="5" min="1"
+                class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none text-sm">
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block font-semibold text-blue-800 mb-2">เลือกช่วงเวลา:</label>
+            <div id="timeSlotGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <!-- generated by js -->
+            </div>
+          </div>
+
+          <button type="button" onclick="saveMultipleSlots()" id="btnSaveSlots"
+            class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-sm">
+            + บันทึกช่วงเวลาที่เลือก
+          </button>
+        </div>
+
+        <!-- Slot List -->
+        <div
+          class="bg-white rounded-xl border border-gray-100 flex-grow overflow-hidden flex flex-col shadow-sm border-t-4 border-t-gray-100">
+          <div class="flex justify-between items-center bg-gray-50/50 border-b border-gray-100 p-3">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:block">รายการช่วงเวลา</span>
+            <input type="date" id="filterSlotDate"
+              onchange="document.getElementById('slotDate').value=this.value; fetchDoctorSlots();"
+              class="px-2 py-1 text-xs border border-gray-200 bg-white rounded outline-none focus:border-blue-400">
+          </div>
+
+          <div class="overflow-y-auto max-h-56 lg:flex-grow lg:max-h-full">
+            <table class="w-full text-left text-sm border-collapse">
+              <thead class="bg-gray-50 text-gray-500 sticky top-0 backdrop-blur-sm z-10">
+                <tr>
+                  <th class="p-3 border-b font-medium w-28">วันที่</th>
+                  <th class="p-3 border-b font-medium">เวลา</th>
+                  <th class="p-3 border-b font-medium text-center">จอง/รับ</th>
+                  <th class="p-3 border-b font-medium text-center w-20">ลบ</th>
+                </tr>
+              </thead>
+              <tbody id="slotTableBody" class="divide-y divide-gray-50">
+                <tr>
+                  <td colspan="4" class="p-6 text-center text-gray-400">ระบุแพทย์และวันที่เพื่อดูตารางเวลา</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="p-6 overflow-y-auto w-full">
-      <form id="doctorForm" class="space-y-5">
-        <input type="hidden" id="doctorId">
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">รหัสพนักงาน/แพทย์</label>
-            <input type="text" id="doctorEmpId" required
-              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">สถานะ</label>
-            <select id="doctorStatus"
-              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-              <option value="ว่างวันนี้">ว่างวันนี้</option>
-              <option value="ว่างเช้า">ว่างเช้า</option>
-              <option value="ว่างบ่าย">ว่างบ่าย</option>
-              <option value="เต็มวันนี้">เต็มวันนี้</option>
-              <option value="ลา">ลาพัก</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">ชื่อ</label>
-            <input type="text" id="doctorFirstname" required
-              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">นามสกุล</label>
-            <input type="text" id="doctorLastname" required
-              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">ความเชี่ยวชาญ</label>
-          <input type="text" id="doctorSpecialist" required
-            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-        </div>
-
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">แผนกประจำ</label>
-          <div id="departmentCheckboxes"
-            class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <!-- Populated by JS -->
-            <div class="text-sm text-gray-500">กำลังโหลดแผนก...</div>
-          </div>
-        </div>
-      </form>
-    </div>
-
-    <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl mt-auto">
-      <button type="button" onclick="closeDoctorModal()"
-        class="px-5 py-2.5 text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-800 rounded-xl font-semibold transition-all shadow-sm">
-        ยกเลิก
-      </button>
-      <button type="button" onclick="saveDoctor()" id="btnSaveDoctor"
-        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-sm flex items-center gap-2">
-        บันทึกข้อมูล
-      </button>
-    </div>
   </div>
 </div>
 
 <script>
   let allDoctors = [];
   let allDepartments = [];
+  let currentSelectedDoctor = null;
+
+  const timeSlots = [
+    "09:00-09:30", "09:30-10:00", "10:00-10:30", "10:30-11:00",
+    "13:00-13:30", "13:30-14:00", "14:00-14:30", "14:30-15:00",
+    "15:00-15:30", "15:30-16:00", "16:00-16:30", "16:30-17:00"
+  ];
+  let selectedTimeSlots = new Set();
+  let existingSlotsOnDate = new Set();
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchDepartments();
     fetchDoctors();
+    renderTimeSlots();
   });
+
+  function renderTimeSlots() {
+    const container = document.getElementById('timeSlotGrid');
+    container.innerHTML = '';
+    timeSlots.forEach(slot => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const isSelected = selectedTimeSlots.has(slot);
+      const isExisting = existingSlotsOnDate.has(slot);
+
+      if (isExisting) {
+        btn.className = 'py-1.5 text-xs border rounded-md font-medium bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed';
+        btn.disabled = true;
+      } else {
+        btn.className = `py-1.5 text-xs border rounded-md transition-all font-medium ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-blue-600 border-blue-300 hover:border-blue-500 hover:bg-blue-50'}`;
+        btn.onclick = () => {
+          if (selectedTimeSlots.has(slot)) {
+            selectedTimeSlots.delete(slot);
+          } else {
+            selectedTimeSlots.add(slot);
+          }
+          renderTimeSlots();
+        };
+      }
+      btn.innerText = slot;
+      container.appendChild(btn);
+    });
+  }
 
   async function fetchDepartments() {
     try {
@@ -136,28 +261,21 @@
       const data = await res.json();
       if (data.success) {
         allDepartments = data.departments;
-        renderDepartmentCheckboxes();
+        renderDepartmentSelect();
       }
     } catch (error) {
       console.error('Error fetching departments:', error);
     }
   }
 
-  function renderDepartmentCheckboxes() {
-    const container = document.getElementById('departmentCheckboxes');
-    container.innerHTML = '';
-    if (allDepartments.length === 0) {
-      container.innerHTML = '<div class="col-span-full text-sm text-gray-500">ไม่มีข้อมูลแผนก</div>';
-      return;
-    }
+  function renderDepartmentSelect() {
+    const select = document.getElementById('doctorDepartment');
+    select.innerHTML = '<option value="">-- เลือกแผนก --</option>';
     allDepartments.forEach(dep => {
-      const label = document.createElement('label');
-      label.className = 'flex items-center gap-2 cursor-pointer p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 shadow-sm hover:shadow-md';
-      label.innerHTML = `
-                    <input type="checkbox" name="departments" value="${dep.department_id}" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
-                    <span class="text-sm font-medium text-gray-700 truncate" title="${dep.name}">${dep.name}</span>
-                `;
-      container.appendChild(label);
+      const opt = document.createElement('option');
+      opt.value = dep.department_id;
+      opt.innerText = dep.name;
+      select.appendChild(opt);
     });
   }
 
@@ -206,11 +324,11 @@
                     <td class="p-4">${statusBadge}</td>
                     <td class="p-4 text-center">
                         <div class="flex justify-center items-center gap-2">
-                            <button onclick="editDoctor(${doc.id})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="แก้ไขข้อมูล">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            <button onclick="openUnifiedModal(${doc.id})" class="text-sm px-3 py-1 text-blue-600 bg-blue-50 border border-blue-100 hover:bg-blue-600 hover:text-white rounded-lg transition-colors shadow-sm" title="แก้ไขข้อมูล/ตารางเวลา">
+                                แจ้งแก้ไข / ตาราง
                             </button>
-                            <button onclick="deleteDoctor(${doc.id})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="ลบข้อมูล">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <button onclick="deleteDoctor(${doc.id})" class="p-1 px-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100" title="ลบข้อมูล">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                     </td>
@@ -219,46 +337,200 @@
     });
   }
 
-  function openDoctorModal(doc = null) {
-    document.getElementById('doctorModal').classList.remove('hidden');
+  function openUnifiedModal(doctorId = null) {
+    const modal = document.getElementById('unifiedDoctorModal');
+    const titleObj = document.getElementById('unifiedModalTitle');
+    const slotOverlay = document.getElementById('slotOverlay');
+
+    modal.classList.remove('hidden');
     document.getElementById('doctorForm').reset();
+    selectedTimeSlots.clear();
+    existingSlotsOnDate.clear();
+    renderTimeSlots();
 
-    // clear checkboxes
-    document.querySelectorAll('input[name="departments"]').forEach(cb => cb.checked = false);
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('slotDate').value = today;
+    document.getElementById('filterSlotDate').value = today;
+    document.getElementById('slotTableBody').innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400">ระบุแพทย์และวันที่เพื่อดูตารางเวลา</td></tr>';
 
-    if (doc) {
-      document.getElementById('doctorModalTitle').innerText = 'แก้ไขข้อมูลแพทย์';
-      document.getElementById('doctorId').value = doc.id;
-      document.getElementById('doctorEmpId').value = doc.doctor_id;
-      document.getElementById('doctorFirstname').value = doc.firstname;
-      document.getElementById('doctorLastname').value = doc.lastname;
-      document.getElementById('doctorSpecialist').value = doc.specialist;
-      document.getElementById('doctorStatus').value = doc.status;
+    if (doctorId) {
+      currentSelectedDoctor = allDoctors.find(d => d.id === doctorId);
+      if (!currentSelectedDoctor) return;
 
-      // check boxes based on departments name check
-      document.querySelectorAll('input[name="departments"]').forEach(cb => {
-        const labelSpan = cb.nextElementSibling.innerText;
-        if (doc.departments.includes(labelSpan)) {
-          cb.checked = true;
-        }
-      });
+      titleObj.innerText = `แก้ไขข้อมูลแพทย์`;
+      slotOverlay.classList.remove('flex');
+      slotOverlay.classList.add('hidden');
+
+      document.getElementById('doctorId').value = currentSelectedDoctor.id;
+      document.getElementById('doctorEmpId').value = currentSelectedDoctor.doctor_id;
+      document.getElementById('doctorFirstname').value = currentSelectedDoctor.firstname;
+      document.getElementById('doctorLastname').value = currentSelectedDoctor.lastname;
+      document.getElementById('doctorSpecialist').value = currentSelectedDoctor.specialist;
+
+      const validStatuses = Array.from(document.getElementById('doctorStatus').options).map(o => o.value);
+      if (validStatuses.includes(currentSelectedDoctor.status)) {
+        document.getElementById('doctorStatus').value = currentSelectedDoctor.status;
+      }
+
+      const selectDept = document.getElementById('doctorDepartment');
+      selectDept.value = "";
+      if (currentSelectedDoctor.departments && currentSelectedDoctor.departments.length > 0) {
+        const depName = currentSelectedDoctor.departments[0];
+        const depObj = allDepartments.find(d => d.name === depName);
+        if (depObj) selectDept.value = depObj.department_id;
+      }
+
+      fetchDoctorSlots();
     } else {
-      document.getElementById('doctorModalTitle').innerText = 'เพิ่มแพทย์ใหม่';
+      currentSelectedDoctor = null;
+      titleObj.innerText = 'เพิ่มข้อมูลแพทย์';
+      slotOverlay.classList.remove('hidden');
+      slotOverlay.classList.add('flex');
       document.getElementById('doctorId').value = '';
     }
   }
 
-  function closeDoctorModal() {
-    document.getElementById('doctorModal').classList.add('hidden');
+  function closeUnifiedModal() {
+    document.getElementById('unifiedDoctorModal').classList.add('hidden');
+    currentSelectedDoctor = null;
   }
 
-  function editDoctor(id) {
-    const doc = allDoctors.find(d => d.id === id);
-    if (doc) openDoctorModal(doc);
+  async function fetchDoctorSlots() {
+    if (!currentSelectedDoctor) return;
+    const filterDate = document.getElementById('filterSlotDate').value || document.getElementById('slotDate').value;
+    const tbody = document.getElementById('slotTableBody');
+    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">กำลังโหลด...</td></tr>';
+
+    try {
+      const res = await fetch(`/api/admin/slots?doctor_id=${currentSelectedDoctor.id}&date=${filterDate}`);
+      if (!res.ok) throw new Error('Fetch failed');
+      const data = await res.json();
+
+      tbody.innerHTML = '';
+      existingSlotsOnDate.clear();
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400">ไม่มีตารางเวลาในวันที่ ${filterDate}</td></tr>`;
+        renderTimeSlots();
+        return;
+      }
+
+      data.sort((a, b) => a.start_time.localeCompare(b.start_time)).forEach(slot => {
+        const sTime = slot.start_time.substring(0, 5);
+        const eTime = slot.end_time.substring(0, 5);
+        const slotStr = `${sTime}-${eTime}`;
+        existingSlotsOnDate.add(slotStr);
+        if (selectedTimeSlots.has(slotStr)) {
+          selectedTimeSlots.delete(slotStr);
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-blue-50/30 transition-colors";
+
+        const isFull = slot.current_bookings >= slot.max_capacity;
+        const colorClass = isFull ? "text-red-500 font-bold" : "text-green-600 font-semibold";
+
+        tr.innerHTML = `
+          <td class="p-3 text-gray-700">${slot.date}</td>
+          <td class="p-3 text-gray-700 font-medium">${slot.start_time} - ${slot.end_time}</td>
+          <td class="p-3 text-center">
+             <span class="${colorClass}">${slot.current_bookings} / ${slot.max_capacity}</span>
+          </td>
+          <td class="p-3 text-center">
+             <button onclick="deleteSlot(${slot.id})" class="px-3 py-1 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white border border-red-100 rounded text-xs font-medium transition-colors">
+                ลบ
+             </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      renderTimeSlots();
+    } catch (error) {
+      console.error('Error fetching slots:', error);
+      tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-400">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+    }
+  }
+
+  async function saveMultipleSlots() {
+    if (!currentSelectedDoctor) return;
+    if (selectedTimeSlots.size === 0) {
+      alert('กรุณาเลือกช่วงเวลาอย่างน้อย 1 ช่วง');
+      return;
+    }
+
+    const dateVal = document.getElementById('slotDate').value;
+    const capacityVal = parseInt(document.getElementById('slotCapacity').value);
+    const deptVal = document.getElementById('doctorDepartment').value;
+
+    if (!dateVal || !capacityVal) {
+      alert('กรุณาระบุวันที่และจำนวนสูงสุด');
+      return;
+    }
+    if (!deptVal) {
+      alert('กรุณาเลือก/บันทึกแผนกสำหรับแพทย์นี้ก่อน');
+      return;
+    }
+
+    const btnSave = document.getElementById('btnSaveSlots');
+    const ogText = btnSave.innerText;
+    btnSave.disabled = true;
+    btnSave.innerText = 'กำลังบันทึก...';
+
+    const promises = [];
+    selectedTimeSlots.forEach(slot => {
+      const [startTime, endTime] = slot.split("-");
+      const payload = {
+        doctor_id: currentSelectedDoctor.id,
+        department_id: parseInt(deptVal),
+        slot_date: dateVal,
+        start_time: startTime,
+        end_time: endTime,
+        max_capacity: capacityVal
+      };
+      promises.push(
+        fetch('/api/admin/slots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+      );
+    });
+
+    try {
+      const responses = await Promise.all(promises);
+      if (responses.every(r => r.ok)) {
+        selectedTimeSlots.clear();
+        renderTimeSlots();
+        document.getElementById('filterSlotDate').value = dateVal;
+        fetchDoctorSlots();
+      } else {
+        alert('บางช่วงเวลาอาจบันทึกไม่สำเร็จ (อาจซ้ำซ้อน)');
+      }
+    } catch (error) {
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    } finally {
+      btnSave.disabled = false;
+      btnSave.innerText = ogText;
+    }
+  }
+
+  async function deleteSlot(id) {
+    if (confirm('ยืนยันลบช่วงเวลานี้?\n(เพื่อการจัดการ หากมีคิวจองแล้วจะไม่สามารถลบได้)')) {
+      try {
+        const res = await fetch(`/api/admin/slots/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          fetchDoctorSlots();
+        } else {
+          const data = await res.json();
+          alert(data.message || 'ลบไม่สำเร็จ (อาจมีผู้จองแล้ว)');
+        }
+      } catch (e) {
+        alert('เชื่อมต่อล้มเหลว');
+      }
+    }
   }
 
   async function saveDoctor() {
-    // Validate form
     const form = document.getElementById('doctorForm');
     if (!form.checkValidity()) {
       form.reportValidity();
@@ -268,8 +540,11 @@
     const id = document.getElementById('doctorId').value;
     const isEdit = !!id;
 
-    // Collect departments
-    const selectedDeps = Array.from(document.querySelectorAll('input[name="departments"]:checked')).map(cb => parseInt(cb.value));
+    const deptVal = document.getElementById('doctorDepartment').value;
+    if (!deptVal) {
+      alert("กรุณาเลือกแผนก");
+      return;
+    }
 
     const payload = {
       doctor_id: document.getElementById('doctorEmpId').value,
@@ -277,7 +552,7 @@
       lastname: document.getElementById('doctorLastname').value,
       specialist: document.getElementById('doctorSpecialist').value,
       status: document.getElementById('doctorStatus').value,
-      department_ids: selectedDeps
+      department_ids: [parseInt(deptVal)]
     };
 
     const url = isEdit ? `/api/admin/doctors/${id}` : '/api/admin/doctors';
@@ -295,11 +570,32 @@
       });
       const data = await res.json();
 
-      if (data.success) {
-        closeDoctorModal();
-        fetchDoctors(); // Refresh table
+      if (res.ok || data.success) {
+        if (!isEdit) {
+          if (confirm("บันทึกข้อมูลแพทย์สำเร็จ!\nต้องการจัดการเวลาตรวจ (Slots) ของแพทย์ท่านนี้ต่อหรือไม่?")) {
+            await fetchDoctors();
+            const newDoc = allDoctors.find(d => d.doctor_id === payload.doctor_id);
+            if (newDoc) {
+              openUnifiedModal(newDoc.id);
+            } else {
+              closeUnifiedModal();
+            }
+          } else {
+            closeUnifiedModal();
+            fetchDoctors();
+          }
+        } else {
+          fetchDoctors();
+          const oldText = document.getElementById('unifiedModalTitle').innerText;
+          document.getElementById('unifiedModalTitle').innerText = "✓ บันทึกสำเร็จ";
+          document.getElementById('unifiedModalTitle').classList.add("text-green-600");
+          setTimeout(() => {
+            document.getElementById('unifiedModalTitle').innerText = oldText;
+            document.getElementById('unifiedModalTitle').classList.remove("text-green-600");
+          }, 2000);
+        }
       } else {
-        alert('เกิดข้อผิดพลาด: ' + data.message);
+        alert('เกิดข้อผิดพลาด: ' + (data.message || 'รหัสพนักงานซ้ำซ้อน'));
       }
     } catch (error) {
       console.error('Error saving doctor:', error);
@@ -312,12 +608,12 @@
   }
 
   async function deleteDoctor(id) {
-    if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบแพทย์ท่านนี้?\n(ข้อมูลจะถูกลบอย่างถาวร)')) {
+    if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบแพทย์ท่านนี้?\n(ข้อมูลตารางและคิวที่เกี่ยวข้องจะถูกลบอย่างถาวร)')) {
       try {
         const res = await fetch(`/api/admin/doctors/${id}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
-          fetchDoctors(); // Refresh table
+          fetchDoctors();
         } else {
           alert('เกิดข้อผิดพลาด: ' + data.message);
         }
