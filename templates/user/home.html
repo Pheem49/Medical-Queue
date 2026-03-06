@@ -25,12 +25,21 @@
       </p>
       <div class="flex gap-2">
         <div class="flex flex-wrap gap-4">
+          {% if has_active_booking %}
+          <a
+            href="{{ url_for('booking.MyTickets') }}"
+            class="bg-yellow-400 text-gray-900 font-bold py-2 px-4 text-sm sm:text-base rounded-lg shadow hover:bg-yellow-300 transition transform hover:-translate-y-0.5 inline-block text-center"
+          >
+            📋 ดูบัตรคิวของคุณ
+          </a>
+          {% else %}
           <a
             href="{{ url_for('booking.BookingPage') }}"
             class="bg-white text-blue-600 font-bold py-2 px-4 text-sm sm:text-base rounded-lg shadow hover:bg-gray-50 transition transform hover:-translate-y-0.5 inline-block text-center"
           >
             + จองคิวตรวจใหม่
           </a>
+          {% endif %}
         </div>
         <div class="flex flex-wrap gap-4">
           <a
@@ -108,14 +117,14 @@
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 md:place-items-stretch">
     <a
-      href="{{ url_for('booking.BookingPage') }}"
+      href="{{ url_for('booking.MyTickets' if has_active_booking else 'booking.BookingPage') }}"
       class="w-full bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-400 transition group flex flex-col items-center text-center"
     >
       <div
-        class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-100 transition"
+        class="w-12 h-12 {{ 'bg-yellow-50' if has_active_booking else 'bg-blue-50' }} rounded-lg flex items-center justify-center mb-4 group-hover:{{ 'bg-yellow-100' if has_active_booking else 'bg-blue-100' }} transition"
       >
         <svg
-          class="w-6 h-6 text-blue-600"
+          class="w-6 h-6 {{ 'text-yellow-600' if has_active_booking else 'text-blue-600' }}"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -124,12 +133,12 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            d="{{ 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' if has_active_booking else 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2' }}"
           ></path>
         </svg>
       </div>
-      <h3 class="text-lg font-bold text-gray-800 mb-1">จองคิวล่วงหน้า</h3>
-      <p class="text-sm text-gray-500">เลือกวันและเวลาที่ต้องการเข้าตรวจ</p>
+      <h3 class="text-lg font-bold text-gray-800 mb-1">{{ 'ดูบัตรคิวของคุณ' if has_active_booking else 'จองคิวล่วงหน้า' }}</h3>
+      <p class="text-sm text-gray-500">{{ 'ท่านมีคิวที่รอตรวจอยู่แล้วในขณะนี้' if has_active_booking else 'เลือกวันและเวลาที่ต้องการเข้าตรวจ' }}</p>
     </a>
 
     <a

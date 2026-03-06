@@ -1,3 +1,7 @@
+# ==========================================
+# คนที่ 7: ตาราง Booking ฝั่งสร้างและแสดงผลคนไข้ (Create & Read Booking)
+# รับผิดชอบ: กระบวนการจองแบบเจาะลึก สำหรับฝั่งคนไข้
+# ==========================================
 from flask import Blueprint, render_template, jsonify, request, session
 from models import db, Booking
 from services.booking_service import create_booking, get_booking_details, get_patient_history
@@ -6,20 +10,50 @@ booking_bp = Blueprint('booking', __name__)
 
 @booking_bp.route("/booking", methods=["GET"])
 def BookingPage():
+    # ตรวจสอบว่ามีคิวที่กำลังรอรับบริการอยู่หรือไม่
+    if 'user_id' in session:
+        user_id = session['user_id']
+        from flask import flash, redirect, url_for
+        # ตรวจสอบสถานะที่เป็น 'รอรับบริการ' เท่านั้น
+        active_booking = Booking.query.filter(
+            Booking.id_users == user_id,
+            Booking.booking_Status == 'รอรับบริการ'
+        ).first()
+        
+        if active_booking:
+            flash(f"คุณมีคิวที่กำลังรอรับบริการอยู่ (หมายเลข #" + str(active_booking.id) + ") หากต้องการจองคิวใหม่ กรุณายกเลิกคิวเดิมก่อน", "error")
+            return redirect(url_for('booking.MyTickets'))
+                    
     return render_template("user/booking.html", title="Booking")
 
 @booking_bp.route("/booking/confirm", methods=["GET"])
 def ConfirmBookingPage():
     # ตรวจสอบการล็อกอิน
     if 'user_id' not in session:
-        return render_template("user/error.html", message="กรุณาเข้าสู่ระบบก่อนทำการจอง"), 401
+        from flask import flash, redirect, url_for
+        flash("กรุณาเข้าสู่ระบบก่อนทำการจอง", "error")
+        return redirect(url_for('user.Login'))
     
     user_id = session['user_id']
+    
+    # ตรวจสอบอาวุธคิวซ้ำซ้อนในหน้า Confirm ด้วย
+    active_booking = Booking.query.filter(
+        Booking.id_users == user_id,
+        Booking.booking_Status == 'รอรับบริการ'
+    ).first()
+    
+    if active_booking:
+        from flask import flash, redirect, url_for
+        flash(f"คุณมีคิวที่กำลังรอรับบริการอยู่ ไม่สามารถดำเนินการจองใหม่ได้", "error")
+        return redirect(url_for('booking.MyTickets'))
+
     slot_id = request.args.get('slot_id')
     detail = request.args.get('detail', '')
     
     if not slot_id:
-        return render_template("user/error.html", message="ข้อมูลการจองไม่ครบถ้วน กรุณากลับไปเลือกเวลาใหม่"), 400
+        from flask import flash, redirect, url_for
+        flash("ข้อมูลการจองไม่ครบถ้วน กรุณากลับไปเลือกเวลาใหม่", "error")
+        return redirect(url_for('booking.BookingPage'))
         
     from models import User, AppointmentSlot, Doctor, Department
     
@@ -35,7 +69,9 @@ def ConfirmBookingPage():
     ).first()
     
     if not slot_data or not user:
-        return render_template("user/error.html", message="ไม่พบข้อมูลการจองที่ระบุ"), 404
+        from flask import flash, redirect, url_for
+        flash("ไม่พบข้อมูลการจองที่ระบุ", "error")
+        return redirect(url_for('booking.BookingPage'))
         
     slot, doctor, dept = slot_data
     
@@ -109,6 +145,20 @@ def api_get_booking_details(booking_id):
     else:
         return jsonify({"status": "error", "message": result["message"]}), 404
 
+@booking_bp.route("/api/booking/<int:booking_id>/cancel", methods=["POST"])
+def api_cancel_booking(booking_id):
+    if 'user_id' not in session:
+        return jsonify({"status": "error", "message": "กรุณาเข้าสู่ระบบก่อน"}), 401
+        
+    user_id = session['user_id']
+    from services.booking_service import cancel_booking
+    result = cancel_booking(user_id=user_id, booking_id=booking_id)
+    
+    if result["success"]:
+        return jsonify({"status": "success", "message": result["message"]}), 200
+    else:
+        return jsonify({"status": "error", "message": result["message"]}), 400
+
 @booking_bp.route("/api/history", methods=["GET"])
 def api_get_history():
     # API เพิ่มเติมสำหรับดึงประวัติการจองของ User นำไปแสดงในหน้า history/mytickets
@@ -128,39 +178,15 @@ def api_get_history():
     else:
          return jsonify({"status": "error", "message": "ไม่สามารถดึงข้อมูลประวัติได้"}), 500
 
-@booking_bp.route("/api/scan/decrypt", methods=["POST"])
-def api_decrypt_qr():
+
+@booking_bp.route("/api/doctor/<int:doctor_id>/available-dates", methods=["GET"])
+def api_get_doctor_available_dates(doctor_id):
     """
-    API สำหรับพนักงานโรงพยาบาล ใช้ถอดรหัส QR Code token กลับเป็นเลขบัตรประชาชน
-    เรียกได้เฉพาะ Staff session เท่านั้น (เพื่อความปลอดภัย)
-    Request body: { "token": "<encrypted_qr_code>" }
-    Response: { "status": "success", "national_id": "1234567890123" }
+    API สำหรับดึงรายการวันที่แพทย์คนนี้มีคิวว่าง
     """
-    # ตรวจสอบว่าเป็น Staff
-    if 'staff_id' not in session:
-        return jsonify({"status": "error", "message": "สำหรับเจ้าหน้าที่เท่านั้น"}), 403
-    
-    data = request.get_json(silent=True)
-    if not data or 'token' not in data:
-        return jsonify({"status": "error", "message": "ไม่พบข้อมูล token"}), 400
-    
-    from services.booking_service import decrypt_national_id
-    
-    token = data['token']
-    national_id = decrypt_national_id(token)
-    
-    if national_id is None:
-        return jsonify({"status": "error", "message": "QR Code ไม่ถูกต้องหรือหมดอายุ"}), 400
-    
-    # ค้นหาข้อมูลคนไข้จากเลขบัตรประชาชน
-    from models import User
-    user = User.query.filter_by(national_id=national_id).first()
-    
-    if not user:
-        return jsonify({"status": "error", "message": "ไม่พบข้อมูลผู้ป่วยในระบบ"}), 404
-    
+    from services.booking_service import get_available_dates
+    dates = get_available_dates(doctor_id)
     return jsonify({
         "status": "success",
-        "national_id": national_id,
-        "patient_name": f"{user.first_name} {user.last_name}"
+        "dates": dates
     }), 200

@@ -2,6 +2,26 @@
 
 <!-- หน้าจองคิว -->
 {% block content %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+  /* สไตล์สำหรับวันที่ที่มีคิวว่าง (จางลงตามความต้องการ) */
+  .available-date {
+    background-color: #dbeafe !important; /* blue-100 */
+    color: #1e40af !important; /* blue-800 */
+    border-radius: 8px !important;
+    font-weight: bold !important;
+  }
+  .available-date:hover {
+    background-color: #bfdbfe !important; /* blue-200 */
+  }
+  /* ซ่อนปฏิทินของ browser เดิม */
+  input[type="date"]::-webkit-inner-spin-button,
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+  }
+</style>
 
 <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
   <div class="mb-8">
@@ -116,6 +136,9 @@
                       if (document.getElementById('date').value) {
                         document.getElementById('date').dispatchEvent(new Event('change'));
                       }
+
+                      // Fetch and highlight available dates in calendar
+                      updateAvailableDates(window.selectedDoctorId);
                     });
 
                     const specialistText = doctor.specialist || 'แพทย์ผู้เชี่ยวชาญ';
@@ -143,6 +166,60 @@
               doctorContainer.innerHTML = '<p class="text-red-500 col-span-full text-center py-4">ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์</p>';
             }
           });
+
+          // ----- Initialize Flatpickr -----
+          const dateInput = document.getElementById('date');
+          const fp = flatpickr(dateInput, {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            locale: {
+              firstDayOfWeek: 1
+            },
+            onChange: function(selectedDates, dateStr) {
+               // Trigger the same logic as the old 'change' event
+               dateInput.dispatchEvent(new Event('change'));
+            }
+          });
+
+          // ----- Fetch available dates and highlight them when doctor is selected -----
+          function getLocalDateString(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+          }
+
+          async function updateAvailableDates(doctorId) {
+            try {
+              const response = await fetch(`/api/doctor/${doctorId}/available-dates`);
+              if (response.ok) {
+                const result = await response.json();
+                if (result.status === 'success') {
+                  const availableDates = result.dates; // Format: ["2026-03-07", ...]
+                  console.log("Available dates for doctor:", availableDates);
+                  
+                  // Update Flatpickr highlighting
+                  fp.set('onDayCreate', (dObj, dStr, fp, dayElem) => {
+                    const dateStr = getLocalDateString(dayElem.dateObj);
+                    if (availableDates.includes(dateStr)) {
+                      dayElem.classList.add('available-date');
+                      dayElem.title = "มีคิวว่าง";
+                    } else {
+                      dayElem.classList.remove('available-date');
+                    }
+                  });
+                  
+                  // Redraw to apply changes
+                  fp.redraw();
+                }
+              }
+            } catch (err) {
+              console.error('Error fetching available dates:', err);
+            }
+          }
+
+          // Override doctor card click to fetch dates
+          const originalDoctorChange = () => {}; // Not needed if we update the listener below
 
           // ----- Fetch slots when date changes -----
           document.getElementById('date').addEventListener('change', async (e) => {
@@ -260,12 +337,12 @@
           <label class="block text-gray-700 font-bold mb-3 flex items-center gap-2">
             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
             </svg>
             วันที่นัดหมาย
           </label>
-          <input id="date" type="date"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700" />
+          <input id="date" type="text" readonly placeholder="เลือกวันที่ต้องการนัดหมาย"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700 bg-white cursor-pointer" />
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6 transition-all duration-300">
@@ -292,5 +369,8 @@
   </div>
   </div>
 </main>
+
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 {% endblock %}

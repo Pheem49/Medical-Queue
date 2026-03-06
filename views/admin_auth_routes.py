@@ -1,3 +1,7 @@
+# ==========================================
+# คนที่ 2: ตาราง Admin (จัดการเจ้าหน้าที่)
+# รับผิดชอบ: ข้อมูลสิทธิ์การเป็นแอดมินหรือพยาบาล
+# ==========================================
 from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for
 from models import db, Admin
 from services.admin_auth_service import verify_admin_login
@@ -12,8 +16,6 @@ def StaffLogin():
     if 'user_id' in session:
         return redirect(url_for('department.Home'))
     return render_template("auth/staff_login.html", title="Staff Login")
-
-# API Routes
 @admin_auth_bp.route("/api/admin/login", methods=["POST"])
 def api_admin_login():
     data = request.get_json() if request.is_json else request.form

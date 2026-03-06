@@ -1,45 +1,133 @@
 {% extends "staff_base.html" %} 
 
+{% block title %}Today's Patients - Staff{% endblock %}
+
 <!-- ตรวจสอบรายชื่อผู้ป่วย -->
 {% block content %}
 
-<section class="mb-8 bg-white p-6 rounded-xl shadow-sm">
-  <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-700">
-    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    ตรวจสอบรายชื่อผู้ป่วยวันนี้
-  </h3>
-  
-  <div class="overflow-x-auto">
-    <table class="w-full text-left border-collapse">
-      <thead>
-        <tr class="bg-gray-50 text-gray-600 uppercase text-xs font-semibold">
-          <th class="p-4 border-b">วันที่</th>
-          <th class="p-4 border-b">เวลา</th>
-          <th class="p-4 border-b">ชื่อ-สกุล</th>
-          <th class="p-4 border-b">แผนก</th>
-          <th class="p-4 border-b">แพทย์</th>
-          <th class="p-4 border-b">สถานะ</th>
-        </tr>
-      </thead>
-      <tbody class="text-sm">
-        <tr>
-          <td colspan="6" class="py-12 text-center text-gray-400">
-            <div class="flex flex-col items-center justify-center">
-              <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-              </svg>
-              <p class="font-medium">ไม่มีรายการนัดหมายวันนี้</p>
-              <p class="text-xs">รายชื่อจะปรากฏเมื่อมีการจองหรือการเช็คอินเข้ามา</p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+<div class="px-4 py-8 max-w-7xl mx-auto space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">รายชื่อผู้ป่วยวันนี้</h1>
+      <p class="text-gray-500 mt-1">ติดตามรายการนัดหมายและสถานะคนไข้แบบ Real-time</p>
+    </div>
+    
+    <button onclick="fetchTodayPatients()" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-sm font-medium shadow-sm transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+      รีเฟรช
+    </button>
   </div>
-</section>
 
+  <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+          <tr>
+            <th scope="col" class="px-6 py-4 font-semibold tracking-wider">แพลนวัน-เวลา</th>
+            <th scope="col" class="px-6 py-4 font-semibold tracking-wider">ชื่อคนไข้</th>
+            <th scope="col" class="px-6 py-4 font-semibold tracking-wider">แผนก / แพทย์</th>
+            <th scope="col" class="px-6 py-4 font-semibold tracking-wider">สถานะ</th>
+            <th scope="col" class="px-6 py-4 font-semibold tracking-wider text-right">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="patientTableBody" class="divide-y divide-gray-100">
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+              <div class="flex flex-col items-center justify-center">
+                <svg class="animate-spin h-8 w-8 text-blue-500 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                กำลังโหลดข้อมูล...
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div id="dashboardEmptyState" class="hidden py-16 px-6 text-center">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 text-gray-400 mb-4">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-1">ยังไม่มีรายการนัดหมายวันนี้</h3>
+      <p class="text-gray-500 font-['Sarabun']">รายชื่อจะปรากฏเมื่อมีการจองหรือการเช็คอินเข้ามาในวันนี้</p>
+    </div>
+  </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    fetchTodayPatients();
+});
+
+async function fetchTodayPatients() {
+    const tbody = document.getElementById('patientTableBody');
+    const emptyState = document.getElementById('dashboardEmptyState');
+    
+    // ดึงวันที่ปัจจุบันตามเวลาท้องถิ่น (Local Date) รูปแบบ YYYY-MM-DD
+    const today = new Date().toLocaleDateString('en-CA'); 
+    
+    try {
+        const res = await fetch(`/api/admin/bookings?date=${today}`);
+        const data = await res.json();
+        
+        tbody.innerHTML = '';
+        
+        if (!data || data.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        }
+        
+        emptyState.classList.add('hidden');
+
+        data.forEach(booking => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-50 transition-colors group font-["Sarabun"]';
+            
+            let statusBadge = '';
+            const status = booking.status || booking.booking_Status;
+            
+            if (status === 'เสร็จสิ้น') {
+                statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">เสร็จสิ้น</span>';
+            } else if (status === 'รอรับบริการ') {
+                statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">รอรับบริการ</span>';
+            } else if (status === 'ยกเลิก') {
+                statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">ยกเลิก</span>';
+            } else {
+                statusBadge = `<span class="px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">${status}</span>`;
+            }
+
+            const formattedDate = booking.slot?.slot_date 
+                ? new Date(booking.slot.slot_date).toLocaleDateString('th-TH') 
+                : '-';
+
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-gray-900 font-medium">${formattedDate}</div>
+                    <div class="text-gray-500 text-xs mt-0.5">${booking.slot?.start_time || '-'} - ${booking.slot?.end_time || '-'}</div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-gray-900 font-medium">${booking.user?.first_name || ''} ${booking.user?.last_name || 'ไม่ระบุชื่อ'}</div>
+                    <div class="text-gray-500 text-xs mt-0.5">${booking.user?.national_id || '-'}</div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-gray-900 font-medium">${booking.slot?.department?.name || '-'}</div>
+                    <div class="text-gray-500 text-xs mt-0.5">นพ. ${booking.slot?.doctor?.firstname || ''} ${booking.slot?.doctor?.lastname || '-'}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${statusBadge}
+                </td>
+                <td class="px-6 py-4 text-right whitespace-nowrap">
+                    <a href="/staff/checkin?id=${booking.id}" class="text-blue-600 hover:text-blue-900 font-medium">จัดการคิว</a>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+    }
+}
+</script>
 
 {% endblock %}

@@ -26,6 +26,23 @@ def decrypt_national_id(token: str) -> str:
         return None
 
 def create_booking(user_id, slot_id, detail):
+    """
+    สร้างการจองใหม่:
+    - ตรวจสอบว่าผู้ใช้มีคิวที่ยัง active (รอรับบริการ/กำลังตรวจ) อยู่หรือไม่
+    - ถ้ามีแล้ว จะไม่อนุญาตให้จองเพิ่มจนกว่าจะเสร็จสิ้นหรือยกเลิกคิวเดิม
+    """
+    # 1. ตรวจสอบคิวที่ยัง Active อยู่ของผู้ใช้คนนี้ (เข้มงวดให้เหลือแค่ 'รอรับบริการ' เท่านั้น)
+    active_booking = Booking.query.filter(
+        Booking.id_users == user_id,
+        Booking.booking_Status == 'รอรับบริการ'
+    ).first()
+    
+    if active_booking:
+        return {
+            "success": False, 
+            "message": "คุณมีคิวที่กำลังรอรับบริการอยู่ (หมายเลขคิว #" + str(active_booking.id) + ") หากต้องการจองคิวใหม่ กรุณายกเลิกคิวเดิมก่อนที่หน้า 'บัตรคิวของฉัน'"
+        }
+
     # ค้นหา Slot
     slot = AppointmentSlot.query.get(slot_id)
     if not slot:
@@ -109,7 +126,33 @@ def get_patient_history(user_id):
     return {"success": True, "data": results}
 
 def cancel_booking(user_id, booking_id):
-    pass
+    # ค้นหาข้อมูลการจอง
+    booking = Booking.query.filter_by(id=booking_id, id_users=user_id).first()
+    
+    if not booking:
+        return {"success": False, "message": "ไม่พบข้อมูลการจอง หรือคุณไม่มีสิทธิ์ยกเลิกคิวนี้"}
+        
+    if booking.booking_Status in ['ยกเลิก', 'เสร็จสิ้น']:
+        return {"success": False, "message": f"ไม่สามารถยกเลิกคิวได้เนื่องจากสถานะปัจจุบันคือ '{booking.booking_Status}'"}
+        
+    try:
+        # เปลี่ยนสถานะการจองเป็นยกเลิก
+        booking.booking_Status = "ยกเลิก"
+        
+        # คืนจำนวนคิวที่ยังว่างอยู่ให้กับ slot
+        slot = AppointmentSlot.query.get(booking.slot_id)
+        if slot and slot.current_booking > 0:
+            slot.current_booking -= 1
+            # ถ้าก่อนหน้านี้เต็ม ให้เปลี่ยนเป็นสถานะปกติ (active)
+            if slot.status == "เต็ม" or slot.status == "Full":
+                slot.status = "active"
+                
+        db.session.commit()
+        return {"success": True, "message": "ยกเลิกคิวสำเร็จ"}
+        
+    except Exception as e:
+        db.session.rollback()
+        return {"success": False, "message": f"เกิดข้อผิดพลาดในการยกเลิกคิว: {str(e)}"}
 
 def get_booking_details(user_id, booking_id):
     # ค้นหาการจองตาม ID และต้องเป็นของ user ที่ขอดู
@@ -153,3 +196,24 @@ def get_booking_details(user_id, booking_id):
             }
         }
     }
+
+def get_available_dates(doctor_id):
+    """
+    ดึงรายการวันที่แพทย์คนนี้มี Slot ที่ยังว่างและเป็นสถานะ 'active'
+    """
+    from sqlalchemy import func
+    from datetime import date
+    
+    # หาวันที่ที่มี Slot ที่ยังไม่เต็ม และสถานะเป็น active และต้องเป็นวันนี้หรืออนาคต
+    slots = db.session.query(
+        AppointmentSlot.slot_date
+    ).filter(
+        AppointmentSlot.doctor_id == doctor_id,
+        AppointmentSlot.status == 'active',
+        AppointmentSlot.current_booking < AppointmentSlot.max_capacity,
+        AppointmentSlot.slot_date >= date.today()
+    ).group_by(
+        AppointmentSlot.slot_date
+    ).all()
+    
+    return [slot.slot_date.isoformat() for slot in slots]

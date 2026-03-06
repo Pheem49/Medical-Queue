@@ -13,6 +13,16 @@
     บัตรคิวของฉัน (Active Ticket)
   </h1>
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="mb-6 p-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
   <div id="bookingsContainer" class="space-y-6">
     <!-- bookings will be rendered here -->
   </div>
@@ -37,9 +47,10 @@
         const result = await response.json();
 
         if (result.status === 'success' && result.data && result.data.length > 0) {
-          // กรองเอาเฉพาะคิวที่ยัง active อยู่ (เช่น status เป็น 'waiting' หรือ 'confirmed')
-          // สำหรับตอนนี้จะแสดงทั้งหมดก่อน หรือคุณสามารถปรับเงื่อนไข filter ตรงนี้ได้
-          const activeBookings = result.data;
+          // กรองเอาเฉพาะคิวที่ยัง active อยู่ (เช็คสถานะ 'รอรับบริการ' เท่านั้นตามมาตรฐานใหม่)
+          const activeBookings = result.data.filter(booking => {
+            return booking.status === 'รอรับบริการ';
+          });
 
           if (activeBookings.length === 0) {
             container.innerHTML = `
@@ -58,16 +69,19 @@
             const formattedDate = dateObj.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
             // แปลงสถานะเป็นภาษาไทยและสี
-            let statusText = booking.status;
-            let statusColor = "bg-blue-100 text-blue-800";
-            if (booking.status.toLowerCase() == "cancelled") {
+            // แปลงสถานะเป็นภาษาไทยและสี (เหลือแค่ 3 สถานะตามมาตรฐานใหม่)
+            let statusText = "";
+            let statusColor = "";
+
+            if (booking.status === "ยกเลิก") {
               statusText = "ยกเลิกแล้ว";
               statusColor = "bg-red-100 text-red-800";
-            } else if (booking.status.toLowerCase() == "completed") {
+            } else if (booking.status === "เสร็จสิ้น") {
               statusText = "ตรวจเสร็จสิ้น";
               statusColor = "bg-green-100 text-green-800";
             } else {
-              statusText = "กำลังรอคิว";
+              // กรณี 'รอรับบริการ' หรืออื่นๆ ที่ยังค้างอยู่
+              statusText = "รอรับบริการ";
               statusColor = "bg-yellow-100 text-yellow-800";
             }
 
@@ -115,23 +129,28 @@
                    </div>
                  </div>
                  
-                 <div class="mt-6 pt-6 border-t border-gray-100 flex items-center justify-between">
-                   <div class="flex items-center gap-4">
-                     <!-- สร้างคอนเทนเนอร์สำหรับ QR Code -->
-                     <div id="${qrCodeElementId}" class="w-20 h-20 p-1 bg-white border border-gray-200 rounded flex items-center justify-center"></div>
-                     <div>
-                       <p class="text-sm text-gray-500">รหัสตรวจสอบ</p>
-                       <p class="font-mono text-sm font-semibold text-gray-800">${booking.qr_code}</p>
-                     </div>
-                   </div>
-                   ${booking.status.toLowerCase() !== 'cancelled' && booking.status.toLowerCase() !== 'completed' ? `
-                   <button onclick="alert('ฟังก์ชันยกเลิกคิวอยู่ระหว่างการพัฒนา')" class="text-red-500 hover:text-red-700 text-sm font-medium px-4 py-2 hover:bg-red-50 rounded-lg transition-colors">
-                     ยกเลิกคิว
-                   </button>
-                   ` : ''}
-                 </div>
-               </div>
-             `;
+                  <div class="mt-6 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center sm:justify-between gap-6 text-center sm:text-left">
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                      <!-- สร้างคอนเทนเนอร์สำหรับ QR Code -->
+                      <div id="${qrCodeElementId}" class="p-2 bg-white border border-gray-200 rounded flex items-center justify-center shrink-0"></div>
+                      <div class="space-y-1">
+                        <p class="text-sm font-bold text-gray-800">สแกนเพื่อรายงานตัว</p>
+                        <p class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded inline-block">โปรดแสดงหน้าจอนี้แก่เจ้าหน้าที่</p>
+                        <p class="text-[10px] text-gray-400 block mt-1">ID: ${booking.qr_code}</p>
+                      </div>
+                    </div>
+                    
+                    ${booking.status === 'รอรับบริการ' ? `
+                    <div class="w-full sm:w-auto">
+                      <button onclick="cancelBooking(${booking.booking_id})" class="w-full sm:w-auto text-red-500 hover:text-white hover:bg-red-500 text-sm font-medium px-6 py-2 rounded-lg transition-all border border-red-200">
+                        ยกเลิกคิว
+                      </button>
+                    </div>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            `;
 
             container.appendChild(ticketCard);
 
@@ -139,11 +158,11 @@
             setTimeout(() => {
               new QRCode(document.getElementById(qrCodeElementId), {
                 text: booking.qr_code,
-                width: 64,
-                height: 64,
+                width: 140, // ลดขนาดลงเล็กน้อยเพื่อให้พอดีกับมือถือ
+                height: 140,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.L
+                correctLevel: QRCode.CorrectLevel.M
               });
             }, 0);
 
@@ -151,18 +170,18 @@
 
         } else {
           container.innerHTML = `
-              < div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center text-gray-500" >
+              <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center text-gray-500">
                 ไม่มีคิวที่กำลังรอรับบริการ
-               </div >
+               </div>
               `;
         }
       } else {
         if (response.status === 401) {
           container.innerHTML = `
-              < div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center" >
+              <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
                   <p class="text-red-500 mb-4">กรุณาเข้าสู่ระบบก่อนดูบัตรคิว</p>
                   <a href="/login" class="text-blue-500 hover:underline">ไปหน้าเข้าสู่ระบบ</a>
-               </div >
+               </div>
              `;
         } else {
           container.innerHTML = '<div class="text-center py-8 text-red-500">เกิดข้อผิดพลาดในการดึงข้อมูลคิวของท่าน</div>';
@@ -173,6 +192,31 @@
       container.innerHTML = '<div class="text-center py-8 text-red-500">ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้</div>';
     }
   });
+
+  async function cancelBooking(bookingId) {
+    if (confirm('คุณแน่ใจหรือไม่ว่าต้องการยกเลิกคิวนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
+      try {
+        const response = await fetch(`/api/booking/${bookingId}/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.status === 'success') {
+          alert('ยกเลิกคิวสำเร็จ');
+          window.location.reload(); // โหลดหน้าใหม่เพื่อแสดงข้อมูลล่าสุด
+        } else {
+          alert(result.message || 'เกิดข้อผิดพลาดในการยกเลิกคิว');
+        }
+      } catch (error) {
+        console.error('Error cancelling booking:', error);
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+      }
+    }
+  }
 </script>
 
 {% endblock %}
