@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+<!-- หน้าตรวจสอบและยืนยันการจอง -->
+{% block content %}
+
+<main class="flex-grow max-w-3xl mx-auto px-4 sm:px-6 py-8 w-full">
+    <div class="mb-10 text-center">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-8 mt-2 text-left">
+            จองคิวตรวจรักษา
+        </h1>
+
+        <div class="flex items-center justify-between relative max-w-xl mx-auto mb-10">
+            <!-- เส้นพื้นหลังสีเทา -->
+            <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 -z-10"></div>
+            <!-- เส้นสีน้ำเงินบอกความคืบหน้า (เต็มเส้นเพราะถึงขั้นตอนสุดท้าย) -->
+            <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-blue-500 -z-10"></div>
+
+            <div class="flex flex-col items-center bg-white px-2">
+                <a href="/booking"
+                    class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold mb-2 shadow-sm hover:bg-blue-700 transition"
+                    title="กลับไปแก้ไข">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </a>
+                <span class="text-xs md:text-sm font-medium text-blue-800">ระบุข้อมูลการจอง</span>
+            </div>
+            <div class="flex flex-col items-center bg-white px-2">
+                <div
+                    class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold mb-2 shadow-md">
+                    2
+                </div>
+                <span class="text-xs md:text-sm font-medium text-blue-800">ยืนยันข้อมูล</span>
+            </div>
+        </div>
+
+        <p class="text-gray-500 mt-4 text-left">กรุณาตรวจสอบข้อมูลของท่านก่อนกดยืนยันการจองคิว</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mb-8">
+        <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
+            <h2 class="text-lg font-bold text-blue-800 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                รายละเอียดการนัดหมาย
+            </h2>
+        </div>
+
+        <div class="p-6 sm:p-8 space-y-6">
+
+            <!-- ข้อมูลผู้ป่วย -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 border-b border-gray-100 pb-6">
+                <div class="w-1/3 text-gray-500 text-sm font-medium">ชื่อผู้เข้ารับบริการ</div>
+                <div class="w-2/3 text-gray-900 font-semibold">{{ user.first_name }} {{ user.last_name }}</div>
+            </div>
+
+            <!-- ข้อมูลแผนกและแพทย์ -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 border-b border-gray-100 pb-6">
+                <div class="w-1/3 text-gray-500 text-sm font-medium">แผนก</div>
+                <div class="w-2/3 text-gray-900 font-semibold">{{ department.name }}</div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 border-b border-gray-100 pb-6">
+                <div class="w-1/3 text-gray-500 text-sm font-medium">แพทย์ผู้ตรวจ</div>
+                <div class="w-2/3 text-gray-900 font-semibold">{{ doctor.firstname }} {{ doctor.lastname }}</div>
+            </div>
+
+            <!-- ข้อมูลวันเวลา -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 border-b border-gray-100 pb-6">
+                <div class="w-1/3 text-gray-500 text-sm font-medium">วันที่นัดหมาย</div>
+                <div class="w-2/3 text-gray-900 font-semibold">{{ slot.slot_date.strftime('%d/%m/%Y') }}</div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 border-b border-gray-100 pb-6">
+                <div class="w-1/3 text-gray-500 text-sm font-medium">เวลาโดยประมาณ</div>
+                <div class="w-2/3 text-gray-900 font-semibold">{{ slot.start_time.strftime('%H:%M') }} - {{
+                    slot.end_time.strftime('%H:%M') }} น.</div>
+            </div>
+
+            <!-- อาการเบื้องต้น -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2">
+                <div class="w-1/3 text-gray-500 text-sm font-medium">อาการเบื้องต้น</div>
+                <div class="w-2/3 text-gray-900 bg-gray-50 p-4 rounded-lg min-h-[80px]">
+                    {% if detail %}
+                    {{ detail }}
+                    {% else %}
+                    <span class="text-gray-400 italic">ไม่ระบุอาการ</span>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/booking"
+            class="w-full sm:w-auto px-8 py-3 bg-white border-2 border-gray-200 text-gray-600 font-bold rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all text-center">
+            ย้อนกลับไปแก้ไข
+        </a>
+        <button id="confirmBtn"
+            class="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition-all transform hover:-translate-y-0.5 relative overflow-hidden group">
+            <span class="relative z-10">ยืนยันการจองคิว</span>
+            <div
+                class="absolute inset-0 h-full w-full bg-blue-700 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300">
+            </div>
+        </button>
+    </div>
+</main>
+
+<script>
+    document.getElementById('confirmBtn').addEventListener('click', async () => {
+        const submitBtn = document.getElementById('confirmBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="relative z-10">กำลังบันทึกข้อมูล...</span>';
+
+        // ดึงค่ามาจาก URL parameter เดิมที่เราส่งมาจากหน้าก่อน
+        const urlParams = new URLSearchParams(window.location.search);
+        const slotId = urlParams.get('slot_id');
+        const detail = urlParams.get('detail') || '';
+
+        try {
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slot_id: slotId, detail: detail })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                // ให้เด้ง Alert น่ารักๆ หรือใช้ SweetAlert ก็เก๋นะ
+                alert('🎉 ยืนยันการจองคิวสำเร็จแล้ว!');
+                window.location.href = '/mytickets';
+            } else {
+                alert('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่สามารถจองคิวได้'));
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="relative z-10">ยืนยันการจองคิว</span>';
+            }
+        } catch (error) {
+            console.error('Error submitting booking:', error);
+            alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span class="relative z-10">ยืนยันการจองคิว</span>';
+        }
+    });
+</script>
+
+{% endblock %}
