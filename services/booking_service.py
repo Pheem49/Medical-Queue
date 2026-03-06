@@ -1,5 +1,29 @@
 from models import db, Booking, AppointmentSlot, Doctor, Department
-import uuid
+import os
+from cryptography.fernet import Fernet
+
+# ===================================================================
+# !! สำคัญมาก !!
+# กุญแจลับนี้ต้องเก็บเป็นความลับและไม่เปลี่ยนแปลง
+# ถ้าเปลี่ยน KEY รหัสเก่าทั้งหมดจะถอดรหัสไม่ได้!
+# ===================================================================
+_FERNET_KEY = os.environ.get("QR_FERNET_KEY", "aGB7sxb5xIQAAF_Nte9hBrvMLYlnEWhRO5GYZUCbit4=")
+_fernet = Fernet(_FERNET_KEY.encode())
+
+def encrypt_national_id(national_id: str) -> str:
+    """เข้ารหัสเลขบัตรประชาชนเป็น token ที่ถอดรหัสกลับได้"""
+    if not national_id:
+        return ""
+    return _fernet.encrypt(national_id.encode("utf-8")).decode("utf-8")
+
+def decrypt_national_id(token: str) -> str:
+    """ถอดรหัส token กลับเป็นเลขบัตรประชาชน (returns None ถ้า token ไม่ถูกต้อง)"""
+    if not token:
+        return None
+    try:
+        return _fernet.decrypt(token.encode("utf-8")).decode("utf-8")
+    except Exception:
+        return None
 
 def create_booking(user_id, slot_id, detail):
     # ค้นหา Slot
@@ -11,15 +35,22 @@ def create_booking(user_id, slot_id, detail):
     if slot.current_booking >= slot.max_capacity:
         return {"success": False, "message": "คิวนัดหมายนี้เต็มแล้ว"}
     
+    # ดึงข้อมูลผู้ใช้เพื่อเอา national_id มาทำเป็น qr_code
+    from models import User
+    user = User.query.get(user_id)
+    if not user:
+        return {"success": False, "message": "ไม่พบข้อมูลผู้ใช้"}
+    
     # เพิ่มจำนวนคิวที่จองแล้ว (current_booking)
     slot.current_booking += 1
     
-    # ถ้าคิวเต็มพอดี ให้อัปเดตสถานะ (ถ้าต้องการ) เช่น
+    # ถ้าคิวเต็มพอดี ให้อัปเดตสถานะ
     if slot.current_booking >= slot.max_capacity:
         slot.status = "เต็ม"
 
-    # สร้างคิวอาร์โค้ด
-    qr_code_ref = uuid.uuid4().hex
+    # เข้ารหัสเลขบัตรประชาชนด้วย Fernet (AES) ก่อนเซฟ
+    # ระบบสามารถถอดรหัสกลับได้ แต่คนภายนอกสแกน QR จะอ่านเลข 13 หลักไม่ออก
+    qr_code_ref = encrypt_national_id(user.national_id)
 
     # สร้างการจองใหม่
     new_booking = Booking(
