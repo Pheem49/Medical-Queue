@@ -1,3 +1,7 @@
+# ==========================================
+# คนที่ 4: ตาราง Doctor (จัดการประวัติคุณหมอ)
+# รับผิดชอบ: ฐานข้อมูลแพทย์รายบุคคล (เพิ่ม/ลบแพทย์)
+# ==========================================
 from flask import Blueprint, render_template, jsonify, request
 from services.doctor_service import get_all_doctors, add_doctor, update_doctor, remove_doctor
 

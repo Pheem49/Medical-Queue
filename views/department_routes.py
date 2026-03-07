@@ -1,3 +1,7 @@
+# ==========================================
+# คนที่ 3: ตาราง Department (จัดการแผนกการเปิดบริการ)
+# รับผิดชอบ: ลิสต์รายชื่อแผนก และหมวดหมู่การรักษา
+# ==========================================
 from flask import Blueprint, render_template, jsonify, request
 from models import db, Department
 
@@ -5,7 +9,15 @@ department_bp = Blueprint('department', __name__)
 
 @department_bp.route("/", methods=["GET"])
 def Home():
-    return render_template("user/home.html", title="Home")
+    from flask import session
+    from models import Booking
+    has_active = False
+    if 'user_id' in session:
+        has_active = Booking.query.filter(
+            Booking.id_users == session['user_id'],
+            Booking.booking_Status == 'รอรับบริการ'
+        ).first() is not None
+    return render_template("user/home.html", title="Home", has_active_booking=has_active)
 
 from services.department_service import get_all_departments, add_department, update_department
 

@@ -16,8 +16,8 @@ def get_all_bookings_for_admin(date_filter=None):
         if date_filter:
             # แปลง string 'YYYY-MM-DD' เป็น date object
             filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
-            # กรองข้อมูลโดยใช้ `booking_at` ที่เป็น datetime
-            query = query.filter(func.date(Booking.booking_at) == filter_date)
+            # กรองข้อมูลโดยใช้ slot_date ของตาราง AppointmentSlot
+            query = query.join(AppointmentSlot).filter(AppointmentSlot.slot_date == filter_date)
 
         bookings = query.all()
         return [booking.to_dict(include_user=True, include_slot=True) for booking in bookings]

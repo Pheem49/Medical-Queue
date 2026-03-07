@@ -1,3 +1,7 @@
+# ==========================================
+# คนที่ 5: ตาราง DoctorToDepartment (จัดการความเชี่ยวชาญ / การลิงค์แผนก)
+# รับผิดชอบ: ตารางเชื่อมโยง Many-to-Many ว่าคุณหมอคนไหนอยู่แผนกอะไร
+# ==========================================
 from flask import Blueprint, jsonify, request
 from services.doctor_department_service import (
     get_doctors_in_department,

@@ -41,7 +41,7 @@
             // คัดกรองเอาเฉพาะสถานะ 'เสร็จสิ้น', 'ยกเลิก', 'cancelled', 'completed'
             const pastBookings = result.data.filter(booking => {
               const status = booking.status.toLowerCase();
-              return status === 'เสร็จสิ้น' || status === 'completed' || status === 'ยกเลิก' || status === 'cancelled';
+              return status === 'เสร็จสิ้น' || status === 'ยกเลิก';
             });
 
             if (pastBookings.length === 0) {
@@ -69,10 +69,10 @@
               let statusColor = "bg-gray-100 text-gray-800";
               let statusText = booking.status;
 
-              if (statusText === 'เสร็จสิ้น' || statusText.toLowerCase() === 'completed') {
+              if (statusText === 'เสร็จสิ้น') {
                 statusColor = "bg-green-100 text-green-800";
                 statusText = "เสร็จสิ้น";
-              } else if (statusText === 'ยกเลิก' || statusText.toLowerCase() === 'cancelled') {
+              } else if (statusText === 'ยกเลิก') {
                 statusColor = "bg-red-100 text-red-800";
                 statusText = "ยกเลิกแล้ว";
               }
