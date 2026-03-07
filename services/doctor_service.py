@@ -46,6 +46,30 @@ def get_all_doctors():
         })
     return result
 
+def get_all_doctors_admin():
+    """
+    ดึงข้อมูลแพทย์ทั้งหมดสำหรับหน้า Admin โดยไม่กรองตาม Slot
+    แสดงหมอทุกคนในระบบ
+    """
+    all_docs = Doctor.query.all()
+    result = []
+    for doc in all_docs:
+        dept_names = db.session.query(Department.name).join(
+            DoctorToDepartment, DoctorToDepartment.department_id == Department.department_id
+        ).filter(DoctorToDepartment.doctor_id == doc.id).all()
+        departments = [d[0] for d in dept_names]
+        result.append({
+            "id": doc.id,
+            "firstname": doc.firstname,
+            "lastname": doc.lastname,
+            "doctor_id": doc.doctor_id,
+            "specialist": doc.specialist,
+            "status": doc.status,
+            "schedule": doc.schedule,
+            "departments": departments
+        })
+    return result
+
 def add_doctor(firstname, lastname, doctor_id_str, specialist, status, schedule_json, department_ids=None):
     new_doctor = Doctor(
         firstname=firstname,
