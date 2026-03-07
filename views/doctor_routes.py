@@ -3,7 +3,7 @@
 # รับผิดชอบ: ฐานข้อมูลแพทย์รายบุคคล (เพิ่ม/ลบแพทย์)
 # ==========================================
 from flask import Blueprint, render_template, jsonify, request
-from services.doctor_service import get_all_doctors, add_doctor, update_doctor, remove_doctor
+from services.doctor_service import get_all_doctors, get_all_doctors_admin, add_doctor, update_doctor, remove_doctor
 
 doctor_bp = Blueprint('doctor', __name__)
 
@@ -15,6 +15,11 @@ def StaffDoctors():
 @doctor_bp.route("/api/doctors", methods=["GET"])
 def api_get_all_doctors():
     doctors = get_all_doctors()
+    return jsonify({"success": True, "doctors": doctors})
+
+@doctor_bp.route("/api/admin/doctors", methods=["GET"])
+def api_admin_get_all_doctors():
+    doctors = get_all_doctors_admin()
     return jsonify({"success": True, "doctors": doctors})
 
 @doctor_bp.route("/api/admin/doctors", methods=["POST"])
