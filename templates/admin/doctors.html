@@ -227,8 +227,9 @@
 
   const timeSlots = [
     "09:00-09:30", "09:30-10:00", "10:00-10:30", "10:30-11:00",
+    "11:00-11:30", "11:30-12:00", // เช้า
     "13:00-13:30", "13:30-14:00", "14:00-14:30", "14:30-15:00",
-    "15:00-15:30", "15:30-16:00", "16:00-16:30", "16:30-17:00"
+    "15:00-15:30", "15:30-16:00", "16:00-16:30", "16:30-17:00" // บ่าย
   ];
   let selectedTimeSlots = new Set();
   let existingSlotsOnDate = new Set();
@@ -262,12 +263,36 @@
             fetchDoctorSlots();
         }
     });
+
+    // เพิ่ม Listener เมื่อเปลี่ยนสถานะหมอ ให้ Re-render Slots ทันที
+    document.getElementById('doctorStatus').addEventListener('change', () => {
+        renderTimeSlots();
+    });
   });
 
   function renderTimeSlots() {
     const container = document.getElementById('timeSlotGrid');
     container.innerHTML = '';
+    
+    // ดึงสถานะปัจจุบันมาเช็ค
+    const status = document.getElementById('doctorStatus').value;
+    
     timeSlots.forEach(slot => {
+      const startTime = slot.split("-")[0];
+      const hour = parseInt(startTime.split(":")[0]);
+      
+      // ตรวจสอบเงื่อนไขตามสถานะ
+      let isDisabledByStatus = false;
+      if (status === "ว่างเช้า" && hour >= 12) {
+          isDisabledByStatus = true;
+      } else if (status === "ว่างบ่าย" && hour < 12) {
+          isDisabledByStatus = true;
+      } else if (status === "คิวเต็มวันนี้") {
+          isDisabledByStatus = true;
+      }
+
+      if (isDisabledByStatus) return; // ไม่ต้องโชว์ปุ่มเลยถ้าไม่ว่างในช่วงนั้น
+
       const btn = document.createElement('button');
       btn.type = 'button';
       const isSelected = selectedTimeSlots.has(slot);

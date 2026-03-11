@@ -101,7 +101,7 @@
         </a>
         <button id="confirmBtn"
             class="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition-all transform hover:-translate-y-0.5 relative overflow-hidden group">
-            <span class="relative z-10">ยืนยันการจองคิว</span>
+            <span class="relative z-10">{% if reschedule_id %}ยืนยันการเลื่อนนัด{% else %}ยืนยันการจองคิว{% endif %}</span>
             <div
                 class="absolute inset-0 h-full w-full bg-blue-700 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300">
             </div>
@@ -112,6 +112,7 @@
 <script>
     document.getElementById('confirmBtn').addEventListener('click', async () => {
         const submitBtn = document.getElementById('confirmBtn');
+        const originalText = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="relative z-10">กำลังบันทึกข้อมูล...</span>';
 
@@ -119,30 +120,41 @@
         const urlParams = new URLSearchParams(window.location.search);
         const slotId = urlParams.get('slot_id');
         const detail = urlParams.get('detail') || '';
+        const rescheduleId = urlParams.get('reschedule');
 
         try {
-            const response = await fetch('/api/bookings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ slot_id: slotId, detail: detail })
-            });
+            let response;
+            if (rescheduleId) {
+                // เลื่อนนัด
+                response = await fetch(`/api/booking/${rescheduleId}/reschedule`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slot_id: slotId, detail: detail })
+                });
+            } else {
+                // สร้างการจองใหม่
+                response = await fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slot_id: slotId, detail: detail })
+                });
+            }
 
             const result = await response.json();
 
             if (response.ok && result.status === 'success') {
-                // ให้เด้ง Alert น่ารักๆ หรือใช้ SweetAlert ก็เก๋นะ
-                alert('🎉 ยืนยันการจองคิวสำเร็จแล้ว!');
+                alert(rescheduleId ? '🎉 เลื่อนนัดสำเร็จแล้ว!' : '🎉 ยืนยันการจองคิวสำเร็จแล้ว!');
                 window.location.href = '/mytickets';
             } else {
-                alert('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่สามารถจองคิวได้'));
+                alert('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่สามารถดำเนินการได้'));
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span class="relative z-10">ยืนยันการจองคิว</span>';
+                submitBtn.innerHTML = originalText;
             }
         } catch (error) {
             console.error('Error submitting booking:', error);
             alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span class="relative z-10">ยืนยันการจองคิว</span>';
+            submitBtn.innerHTML = originalText;
         }
     });
 </script>

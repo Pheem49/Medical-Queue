@@ -239,3 +239,65 @@ def get_available_dates(doctor_id):
     ).all()
     
     return [slot.slot_date.isoformat() for slot in slots]
+
+def reschedule_booking(user_id, booking_id, new_slot_id, new_detail):
+    """
+    เลื่อนนัด (Reschedule):
+    1. ตรวจสอบว่าคิวเดิมเป็นของผู้ใช้นี้จริง และสถานะต้องไม่ใช่ยกเลิก/เสร็จสิ้น
+    2. ตรวจสอบ Slot ใหม่ว่ายังว่างหรือไม่ (คล้าย create_booking)
+    3. คืนที่นั่งให้ Slot เดิม
+    4. หักที่นั่ง Slot ใหม่
+    5. อัปเดตข้อมูลการจอง (ใช้ booking_id เดิม, qr_code เดิม)
+    """
+    # 1. ค้นหา Booking เดิม
+    booking = Booking.query.filter_by(id=booking_id, id_users=user_id).first()
+    if not booking:
+        return {"success": False, "message": "ไม่พบข้อมูลการจอง หรือคุณไม่มีสิทธิ์เลื่อนคิวนี้"}
+        
+    if booking.booking_Status in ['ยกเลิก', 'เสร็จสิ้น']:
+        return {"success": False, "message": f"ไม่สามารถเลื่อนคิวได้เนื่องจากสถานะปัจจุบันคือ '{booking.booking_Status}'"}
+
+    # ถ้าเลือก Slot เดิม (ไม่ได้เปลี่ยนเวลา)
+    if str(booking.slot_id) == str(new_slot_id):
+        return {"success": False, "message": "กรุณาเลือกช่วงเวลาใหม่ที่แตกต่างจากคิวเดิม"}
+
+    # 2. ตรวจสอบ Slot ใหม่
+    new_slot = AppointmentSlot.query.get(new_slot_id)
+    if not new_slot:
+        return {"success": False, "message": "ไม่พบช่วงเวลาใหม่ที่ระบุ"}
+        
+    if new_slot.status != "active" or new_slot.current_booking >= new_slot.max_capacity:
+        return {"success": False, "message": "ช่วงเวลาใหม่ที่คุณเลือกเต็มหรือถูกยกเลิกไปแล้ว"}
+
+    from datetime import date
+    if new_slot.slot_date <= date.today():
+         return {"success": False, "message": "กรุณาเลื่อนคิวไปล่วงหน้าอย่างน้อย 1 วัน"}
+
+    try:
+        # 3. คืนที่นั่งให้ Slot เดิม
+        old_slot = AppointmentSlot.query.get(booking.slot_id)
+        if old_slot and old_slot.current_booking > 0:
+            old_slot.current_booking -= 1
+            if old_slot.status in ["เต็ม", "Full"]:
+                old_slot.status = "active"
+
+        # 4. หักที่นั่ง Slot ใหม่
+        new_slot.current_booking += 1
+        if new_slot.current_booking >= new_slot.max_capacity:
+             new_slot.status = "เต็ม"
+             
+        # 5. อัปเดตข้อมูล Booking
+        booking.slot_id = new_slot.slot_id
+        booking.detail = new_detail if new_detail else booking.detail
+        # คง status เดิม (เช่น รอรับบริการ) และ qr_code เดิมไว้
+        
+        db.session.commit()
+        return {
+            "success": True, 
+            "message": "เลื่อนนัดสำเร็จ!",
+            "booking_id": booking.id
+        }
+        
+    except Exception as e:
+        db.session.rollback()
+        return {"success": False, "message": f"เกิดข้อผิดพลาดในการเลื่อนคิว: {str(e)}"}
