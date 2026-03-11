@@ -14,11 +14,8 @@ def BookingPage():
     if 'user_id' in session:
         user_id = session['user_id']
         from flask import flash, redirect, url_for
-        # ตรวจสอบสถานะที่เป็น 'รอรับบริการ' เท่านั้น
-        active_booking = Booking.query.filter(
-            Booking.id_users == user_id,
-            Booking.booking_Status == 'รอรับบริการ'
-        ).first()
+        from services.booking_service import get_active_booking
+        active_booking = get_active_booking(user_id)
         
         if active_booking:
             flash(f"คุณมีคิวที่กำลังรอรับบริการอยู่ (หมายเลข #" + str(active_booking.id) + ") หากต้องการจองคิวใหม่ กรุณายกเลิกคิวเดิมก่อน", "error")
@@ -37,10 +34,8 @@ def ConfirmBookingPage():
     user_id = session['user_id']
     
     # ตรวจสอบอาวุธคิวซ้ำซ้อนในหน้า Confirm ด้วย
-    active_booking = Booking.query.filter(
-        Booking.id_users == user_id,
-        Booking.booking_Status == 'รอรับบริการ'
-    ).first()
+    from services.booking_service import get_active_booking
+    active_booking = get_active_booking(user_id)
     
     if active_booking:
         from flask import flash, redirect, url_for
@@ -74,6 +69,13 @@ def ConfirmBookingPage():
         return redirect(url_for('booking.BookingPage'))
         
     slot, doctor, dept = slot_data
+    
+    # ตรวจสอบว่าจองล่วงหน้าอย่างน้อย 1 วัน
+    from datetime import date
+    if slot.slot_date <= date.today():
+        from flask import flash, redirect, url_for
+        flash("กรุณาจองคิวล่วงหน้าอย่างน้อย 1 วัน", "error")
+        return redirect(url_for('booking.BookingPage'))
     
     return render_template(
         "user/confirm_booking.html", 

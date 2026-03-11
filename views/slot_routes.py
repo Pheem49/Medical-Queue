@@ -83,20 +83,26 @@ def api_decrypt_qr():
     if not user:
         return jsonify({"status": "error", "message": "ไม่พบข้อมูลผู้ป่วยในระบบ"}), 404
     
-    # ดึงคิวของคนไข้คนนี้ ที่มีสถานะ รอรับบริการ หรืออื่นๆ แบบล่าสุด
-    from sqlalchemy import desc
-    active_booking_data = db.session.query(
-        Booking, AppointmentSlot, Doctor, Department
-    ).join(
-        AppointmentSlot, Booking.slot_id == AppointmentSlot.slot_id
-    ).join(
-        Doctor, AppointmentSlot.doctor_id == Doctor.id
-    ).join(
-        Department, AppointmentSlot.department_id == Department.department_id
-    ).filter(
-        Booking.id_users == user.id,
-        Booking.booking_Status == 'รอรับบริการ'
-    ).order_by(desc(Booking.id)).first()
+    # เช็คและยกเลิกอัตโนมัติถ้าเลยเวลา
+    from services.booking_service import get_active_booking
+    active_booking = get_active_booking(user.id)
+    
+    if not active_booking:
+        active_booking_data = None
+    else:
+        # ดึงคิวของคนไข้คนนี้ ที่มีสถานะ รอรับบริการ หรืออื่นๆ แบบล่าสุด
+        from sqlalchemy import desc
+        active_booking_data = db.session.query(
+            Booking, AppointmentSlot, Doctor, Department
+        ).join(
+            AppointmentSlot, Booking.slot_id == AppointmentSlot.slot_id
+        ).join(
+            Doctor, AppointmentSlot.doctor_id == Doctor.id
+        ).join(
+            Department, AppointmentSlot.department_id == Department.department_id
+        ).filter(
+            Booking.id == active_booking.id
+        ).first()
 
     if not active_booking_data:
          return jsonify({

@@ -25,17 +25,39 @@ def decrypt_national_id(token: str) -> str:
     except Exception:
         return None
 
+def get_active_booking(user_id):
+    """
+    ดึงข้อมูลคิวที่ active อยู่ และถ้าเวลาเลยปลายทางของ slot ไปแล้ว ให้ยกเลิกอัตโนมัติ
+    """
+    from datetime import datetime
+    active_booking = Booking.query.filter(
+        Booking.id_users == user_id,
+        Booking.booking_Status == 'รอรับบริการ'
+    ).first()
+
+    if active_booking:
+        slot = AppointmentSlot.query.get(active_booking.slot_id)
+        if slot:
+            slot_end_datetime = datetime.combine(slot.slot_date, slot.end_time)
+            if datetime.now() > slot_end_datetime:
+                # ยกเลิกคิวอัตโนมัติ
+                active_booking.booking_Status = "ยกเลิก"
+                if slot.current_booking > 0:
+                    slot.current_booking -= 1
+                if slot.status in ["เต็ม", "Full"]:
+                    slot.status = "active"
+                db.session.commit()
+                return None
+    return active_booking
+
 def create_booking(user_id, slot_id, detail):
     """
     สร้างการจองใหม่:
     - ตรวจสอบว่าผู้ใช้มีคิวที่ยัง active (รอรับบริการ/กำลังตรวจ) อยู่หรือไม่
     - ถ้ามีแล้ว จะไม่อนุญาตให้จองเพิ่มจนกว่าจะเสร็จสิ้นหรือยกเลิกคิวเดิม
     """
-    # 1. ตรวจสอบคิวที่ยัง Active อยู่ของผู้ใช้คนนี้ (เข้มงวดให้เหลือแค่ 'รอรับบริการ' เท่านั้น)
-    active_booking = Booking.query.filter(
-        Booking.id_users == user_id,
-        Booking.booking_Status == 'รอรับบริการ'
-    ).first()
+    # 1. ตรวจสอบคิวที่ยัง Active อยู่ของผู้ใช้คนนี้
+    active_booking = get_active_booking(user_id)
     
     if active_booking:
         return {
@@ -211,7 +233,7 @@ def get_available_dates(doctor_id):
         AppointmentSlot.doctor_id == doctor_id,
         AppointmentSlot.status == 'active',
         AppointmentSlot.current_booking < AppointmentSlot.max_capacity,
-        AppointmentSlot.slot_date >= date.today()
+        AppointmentSlot.slot_date > date.today()
     ).group_by(
         AppointmentSlot.slot_date
     ).all()
