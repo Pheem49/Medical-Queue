@@ -10,8 +10,11 @@ booking_bp = Blueprint('booking', __name__)
 
 @booking_bp.route("/booking", methods=["GET"])
 def BookingPage():
-    # ตรวจสอบว่ามีคิวที่กำลังรอรับบริการอยู่หรือไม่
-    if 'user_id' in session:
+    # ตรวจสอบว่าต้องการเลื่อนนัดหรือไม่
+    reschedule_id = request.args.get('reschedule')
+    
+    # ตรวจสอบว่ามีคิวที่กำลังรอรับบริการอยู่หรือไม่ (ถ้าไม่ได้กำลังเลื่อนนัด)
+    if 'user_id' in session and not reschedule_id:
         user_id = session['user_id']
         from flask import flash, redirect, url_for
         from services.booking_service import get_active_booking
@@ -21,7 +24,7 @@ def BookingPage():
             flash(f"คุณมีคิวที่กำลังรอรับบริการอยู่ (หมายเลข #" + str(active_booking.id) + ") หากต้องการจองคิวใหม่ กรุณายกเลิกคิวเดิมก่อน", "error")
             return redirect(url_for('booking.MyTickets'))
                     
-    return render_template("user/booking.html", title="Booking")
+    return render_template("user/booking.html", title="Booking" if not reschedule_id else "Reschedule Booking", reschedule_id=reschedule_id)
 
 @booking_bp.route("/booking/confirm", methods=["GET"])
 def ConfirmBookingPage():
@@ -32,15 +35,17 @@ def ConfirmBookingPage():
         return redirect(url_for('user.Login'))
     
     user_id = session['user_id']
+    reschedule_id = request.args.get('reschedule')
     
-    # ตรวจสอบอาวุธคิวซ้ำซ้อนในหน้า Confirm ด้วย
-    from services.booking_service import get_active_booking
-    active_booking = get_active_booking(user_id)
-    
-    if active_booking:
-        from flask import flash, redirect, url_for
-        flash(f"คุณมีคิวที่กำลังรอรับบริการอยู่ ไม่สามารถดำเนินการจองใหม่ได้", "error")
-        return redirect(url_for('booking.MyTickets'))
+    # ตรวจสอบอาวุธคิวซ้ำซ้อนในหน้า Confirm ด้วย (ถ้าไม่ได้กำลังเลื่อนนัด)
+    if not reschedule_id:
+        from services.booking_service import get_active_booking
+        active_booking = get_active_booking(user_id)
+        
+        if active_booking:
+            from flask import flash, redirect, url_for
+            flash(f"คุณมีคิวที่กำลังรอรับบริการอยู่ ไม่สามารถดำเนินการจองใหม่ได้", "error")
+            return redirect(url_for('booking.MyTickets'))
 
     slot_id = request.args.get('slot_id')
     detail = request.args.get('detail', '')
@@ -48,7 +53,7 @@ def ConfirmBookingPage():
     if not slot_id:
         from flask import flash, redirect, url_for
         flash("ข้อมูลการจองไม่ครบถ้วน กรุณากลับไปเลือกเวลาใหม่", "error")
-        return redirect(url_for('booking.BookingPage'))
+        return redirect(url_for('booking.BookingPage', reschedule=reschedule_id))
         
     from models import User, AppointmentSlot, Doctor, Department
     
@@ -66,7 +71,7 @@ def ConfirmBookingPage():
     if not slot_data or not user:
         from flask import flash, redirect, url_for
         flash("ไม่พบข้อมูลการจองที่ระบุ", "error")
-        return redirect(url_for('booking.BookingPage'))
+        return redirect(url_for('booking.BookingPage', reschedule=reschedule_id))
         
     slot, doctor, dept = slot_data
     
@@ -74,17 +79,18 @@ def ConfirmBookingPage():
     from datetime import date
     if slot.slot_date <= date.today():
         from flask import flash, redirect, url_for
-        flash("กรุณาจองคิวล่วงหน้าอย่างน้อย 1 วัน", "error")
-        return redirect(url_for('booking.BookingPage'))
+        flash("กรุณาจอง/เลื่อนคิวล่วงหน้าอย่างน้อย 1 วัน", "error")
+        return redirect(url_for('booking.BookingPage', reschedule=reschedule_id))
     
     return render_template(
         "user/confirm_booking.html", 
-        title="Confirm Booking",
+        title="Confirm Booking" if not reschedule_id else "Confirm Reschedule",
         user=user,
         slot=slot,
         doctor=doctor,
         department=dept,
-        detail=detail
+        detail=detail,
+        reschedule_id=reschedule_id
     )
 
 @booking_bp.route("/api/bookings", methods=["POST"])
@@ -104,11 +110,13 @@ def api_create_booking():
     user_id = session['user_id']
     detail = data.get('detail', '') # อาการเบื้องต้น (ถ้ามี)
     
-    print(f"DEBUG - slot_id from request: {slot_id} (type: {type(slot_id)})")
-    print(f"DEBUG - user_id from session: {user_id} (type: {type(user_id)})")
-    
     if not slot_id or not user_id:
-        return jsonify({"status": "error", "message": f"ข้อมูลไม่ครบถ้วน (ต้องการ slot_id: {slot_id} และ id_users: {user_id})"}), 400
+        return jsonify({"status": "error", "message": f"ข้อมูลไม่ครบถ้วน"}), 400
+
+    from services.booking_service import get_active_booking
+    active_booking = get_active_booking(user_id)
+    if active_booking:
+        return jsonify({"status": "error", "message": "คุณมีคิวที่กำลังรอรับบริการอยู่ ไม่สามารถสร้างคิวใหม่ได้"}), 400
 
     # เรียกใช้ Service ทำการจอง
     result = create_booking(user_id=user_id, slot_id=slot_id, detail=detail)
@@ -123,6 +131,31 @@ def api_create_booking():
     else:
         return jsonify({"status": "error", "message": result["message"]}), 400
 
+@booking_bp.route("/api/booking/<int:booking_id>/reschedule", methods=["PUT"])
+def api_reschedule_booking(booking_id):
+    if 'user_id' not in session:
+        return jsonify({"status": "error", "message": "กรุณาเข้าสู่ระบบก่อนทำการเลื่อนนัด"}), 401
+        
+    user_id = session['user_id']
+    data = request.get_json(silent=True)
+    
+    if not data:
+        return jsonify({"status": "error", "message": "ข้อมูลไม่ถูกต้อง"}), 400
+        
+    new_slot_id = data.get('slot_id')
+    new_detail = data.get('detail', '')
+    
+    if not new_slot_id:
+        return jsonify({"status": "error", "message": "ไม่พบการระบุช่วงเวลาใหม่ (slot_id)"}), 400
+        
+    from services.booking_service import reschedule_booking
+    result = reschedule_booking(user_id=user_id, booking_id=booking_id, new_slot_id=new_slot_id, new_detail=new_detail)
+    
+    if result["success"]:
+        return jsonify({"status": "success", "message": result["message"]}), 200
+    else:
+        return jsonify({"status": "error", "message": result["message"]}), 400
+
 @booking_bp.route("/mytickets", methods=["GET"])
 def MyTickets():
     return render_template("user/mytickets.html", title="My Tickets")
@@ -133,10 +166,7 @@ def History():
 
 @booking_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
 def api_get_booking_details(booking_id):
-    # สมมติชั่วคราวว่า user_id = 1 (ในระบบจริงควรดึงจาก session ของการ Login)
-    # เพื่อให้สามารถทดสอบฟังก์ชัน get_booking_details ที่มีการเช็คสิทธิ์ได้
     user_id = request.args.get('user_id', 1, type=int) 
-    
     result = get_booking_details(user_id=user_id, booking_id=booking_id)
     
     if result["success"]:

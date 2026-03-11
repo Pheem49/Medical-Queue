@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
-<!-- หน้าจองคิว -->
+<!-- หน้าจองคิวตรวจ -->
 {% block content %}
+
+<!-- Store reschedule_id if present -->
+<input type="hidden" id="reschedule_id" value="{{ reschedule_id or '' }}">
 <!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
@@ -308,9 +311,14 @@
 
             const slotId = selectedSlot.value;
             const detail = document.getElementById('symptoms').value;
+            const rescheduleId = document.getElementById('reschedule_id').value;
 
             // แทนที่จะบันทึกลงฐานข้อมูลเลย ให้ย้ายไปหน้ายืนยันข้อมูลพร้อมส่งพารามิเตอร์ไป
-            window.location.href = `/booking/confirm?slot_id=${slotId}&detail=${encodeURIComponent(detail)}`;
+            let url = `/booking/confirm?slot_id=${slotId}&detail=${encodeURIComponent(detail)}`;
+            if (rescheduleId) {
+                url += `&reschedule=${rescheduleId}`;
+            }
+            window.location.href = url;
           });
 
         });
