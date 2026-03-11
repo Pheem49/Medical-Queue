@@ -12,6 +12,21 @@ booking_bp = Blueprint('booking', __name__)
 def BookingPage():
     # ตรวจสอบว่าต้องการเลื่อนนัดหรือไม่
     reschedule_id = request.args.get('reschedule')
+    reschedule_data = None
+    
+    if reschedule_id:
+        from models import AppointmentSlot, Doctor, Department
+        booking = Booking.query.get(reschedule_id)
+        if booking:
+            slot = AppointmentSlot.query.get(booking.slot_id)
+            if slot:
+                reschedule_data = {
+                    "doctor_id": slot.doctor_id,
+                    "doctor_name": f"{slot.doctor.firstname} {slot.doctor.lastname}",
+                    "department_id": slot.department_id,
+                    "department_name": slot.department.name,
+                    "detail": booking.detail
+                }
     
     # ตรวจสอบว่ามีคิวที่กำลังรอรับบริการอยู่หรือไม่ (ถ้าไม่ได้กำลังเลื่อนนัด)
     if 'user_id' in session and not reschedule_id:
@@ -24,7 +39,10 @@ def BookingPage():
             flash(f"คุณมีคิวที่กำลังรอรับบริการอยู่ (หมายเลข #" + str(active_booking.id) + ") หากต้องการจองคิวใหม่ กรุณายกเลิกคิวเดิมก่อน", "error")
             return redirect(url_for('booking.MyTickets'))
                     
-    return render_template("user/booking.html", title="Booking" if not reschedule_id else "Reschedule Booking", reschedule_id=reschedule_id)
+    return render_template("user/booking.html", 
+                           title="Booking" if not reschedule_id else "เลื่อนนัดหมาย", 
+                           reschedule_id=reschedule_id,
+                           reschedule_data=reschedule_data)
 
 @booking_bp.route("/booking/confirm", methods=["GET"])
 def ConfirmBookingPage():
