@@ -48,7 +48,7 @@ python app.py
 
 ## 8 ตาราง 8 หน้าที่
 
-### 🧑‍💻 คนที่ 1: ตาราง [User](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#10-40) (จัดการคนไข้)
+### 🧑‍💻 คนที่ 1 แป้ง : ตาราง [User](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#10-40) (จัดการคนไข้)
 **รับผิดชอบ:** ข้อมูลผู้สมัคร / ผู้ป่วยทั่วไปทั้งหมด 
 **ไฟล์หน้าบ้าน (Route):** `views/user_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/user_service.py`
@@ -61,16 +61,16 @@ python app.py
 - `PUT /api/user/profile` (แก้ไขข้อมูลส่วนตัว)
 - **จุดพรีเซนต์:** ระบบสมัครสมาชิก/ล็อกอิน และการจัดการ Session ของคนไข้
 
-### 🧑‍💻 คนที่ 2: ตาราง [Admin](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#42-53) (จัดการเจ้าหน้าที่)
+### 🧑‍💻 คนที่ 2 คิม : ตาราง [Admin](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#42-53) (จัดการเจ้าหน้าที่)
 **รับผิดชอบ:** ข้อมูลสิทธิ์การเป็นแอดมินหรือพยาบาล
 **ไฟล์หน้าบ้าน (Route):** `views/admin_auth_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/admin_auth_service.py`
 - `GET /staff/login` (หน้า Login เจ้าหน้าที่)
 - `POST /api/admin/login` (เข้าสู่ระบบเจ้าหน้าที่)
-- `DELETE /api/logout` (ออกจากระบบ / เคลียร์ Session)
+- `GET/POST/DELETE /api/logout` (ออกจากระบบ / เคลียร์ Session)
 - **จุดพรีเซนต์:** ระบบความปลอดภัยของเจ้าหน้าที่ และการแยกสิทธิ์ระหว่าง User และ Admin
 
-### 🧑‍💻 คนที่ 3: ตาราง [Department](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#55-67) (จัดการแผนกการเปิดบริการ)
+### 🧑‍💻 คนที่ 3 ซันเดย์: ตาราง [Department](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#55-67) (จัดการแผนกการเปิดบริการ)
 **รับผิดชอบ:** ลิสต์รายชื่อแผนก และหมวดหมู่การรักษา
 **ไฟล์หน้าบ้าน (Route):** `views/department_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/department_service.py`
@@ -79,7 +79,7 @@ python app.py
 - `POST /api/admin/departments` (แอดมินเพิ่มแผนกใหม่)
 - `PUT /api/admin/departments/<int:department_id>` (แก้ไขชื่อแผนก)
 
-### 🧑‍💻 คนที่ 4: ตาราง [Doctor](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#69-99) (จัดการประวัติคุณหมอ)
+### 🧑‍💻 คนที่ 4 แฟรงค์: ตาราง [Doctor](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#69-99) (จัดการประวัติคุณหมอ)
 **รับผิดชอบ:** ฐานข้อมูลแพทย์รายบุคคล (เพิ่ม/ลบแพทย์)
 **ไฟล์หน้าบ้าน (Route):** `views/doctor_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/doctor_service.py`
@@ -91,7 +91,7 @@ python app.py
 - `DELETE /api/admin/doctors/<int:doctor_id>` (ลบข้อมูลแพทย์)
 - **จุดพรีเซนต์:** การเก็บข้อมูลตารางเวลาแบบ JSON เพื่อความยืดหยุ่น
 
-### 🧑‍💻 คนที่ 5: ตาราง [DoctorToDepartment](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#101-113) (จัดการความเชี่ยวชาญ / การลิงค์แผนก)
+### 🧑‍💻 คนที่ 5 ภีม : ตาราง [DoctorToDepartment](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#101-113) (จัดการความเชี่ยวชาญ / การลิงค์แผนก)
 **รับผิดชอบ:** ตารางเชื่อมโยง Many-to-Many ว่าคุณหมอคนไหนอยู่แผนกอะไร
 **ไฟล์หน้าบ้าน (Route):** `views/doctor_department_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/doctor_department_service.py`
@@ -101,7 +101,7 @@ python app.py
 - `DELETE /api/admin/remove_doctor_dept` (ปลดหมอออกจากแผนก)
 - **จุดพรีเซนต์:** การจัดการความสัมพันธ์แบบ Many-to-Many ในฐานข้อมูล
 
-### 🧑‍💻 คนที่ 6: ตาราง [AppointmentSlot](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#115-164) (ตารางเวลาการเปิดเปิดคิว)
+### 🧑‍💻 คนที่ 6 ฟีม : ตาราง [AppointmentSlot](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#115-164) (ตารางเวลาการเปิดเปิดคิว)
 **รับผิดชอบ:** เวลาแต่ละสล็อตที่เปิดรับคนไข้ และระบบ Scanner
 **ไฟล์หน้าบ้าน (Route):** `views/slot_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/slot_service.py`
@@ -109,10 +109,11 @@ python app.py
 - `GET /api/admin/slots` (ดึงสล็อตเวลาตามหมอ/วันที่)
 - `POST /api/admin/slots` (สร้างสล็อตเวลาใหม่)
 - `PUT /api/admin/slots/<int:slot_id>/status` (อัปเดตสถานะสล็อต)
+- `DELETE /api/admin/slots/<int:slot_id>` (ลบสล็อตเวลา)
 - `POST /api/scan/decrypt` (API สำหรับถอดรหัส QR Code)
 - **จุดพรีเซนต์:** ระบบ Scanner และการจัดการสล็อตเวลาแบบ Real-time
 
-### 🧑‍💻 คนที่ 7: ตาราง [Booking](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#166-210) ฝั่งคนไข้ (Create & Read Booking)
+### 🧑‍💻 คนที่ 7 ปอนด์ : ตาราง [Booking](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#166-210) ฝั่งคนไข้ (Create & Read Booking)
 **รับผิดชอบ:** กระบวนการจองของคนไข้ และการดูคิวของตนเอง
 **ไฟล์หน้าบ้าน (Route):** `views/booking_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/booking_service.py`
@@ -121,21 +122,57 @@ python app.py
 - `GET /mytickets` (หน้าบัตรคิวของฉัน)
 - `GET /history` (หน้าประวัติการจอง)
 - `POST /api/bookings` (บันทึกข้อมูลการจองใหม่)
+- `PUT /api/booking/<int:booking_id>/reschedule` (เลื่อนนัดหมาย)
+- `GET /api/booking/<int:booking_id>` (ดูรายละเอียดการจอง)
 - `POST /api/booking/<int:booking_id>/cancel` (ยกเลิกการจอง)
+- `GET /api/history` (ดึงประวัติการจองทั้งหมดของ User)
+- `GET /api/doctor/<int:doctor_id>/available-dates` (ดึงวันที่หมอมีคิวว่าง)
 - **จุดพรีเซนต์:** ระบบการจองคิวพร้อมการสร้าง QR Code และการเช็คเงื่อนไขจองซ้อน
 
-### 🧑‍💻 คนที่ 8: ตาราง [Booking](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#166-210) ฝั่งแอดมิน (Booking Management)
+### 🧑‍💻 คนที่ 8 บอล : ตาราง [Booking](file:///c:/My%20document%20etc/Medical/Medical-Queue/models.py#166-210) ฝั่งแอดมิน (Booking Management)
 **รับผิดชอบ:** การจัดการคิวทั้งหมดของโรงพยาบาล และการอัปเดตสถานะคิว
 **ไฟล์หน้าบ้าน (Route):** `views/booking_management_routes.py`
 **ไฟล์หลังบ้าน (Service):** `services/booking_management_service.py`
 - `GET /staff/patients` (หน้า Dashboard ดูคนไข้วันนี้)
 - `GET /staff/history` (หน้าดูประวัติคิวรวมทั้งโรงพยาบาล)
 - `GET /api/admin/bookings` (ดึงข้อมูลการจองทั้งหมด)
+- `GET /api/admin/bookings/<int:booking_id>` (ดึงข้อมูลการจองสำหรับ Scanner)
 - `PUT /api/admin/bookings/<int:booking_id>/status` (อัปเดตสถานะคนไข้ เช่น มารับบริการแล้ว)
 - `DELETE /api/bookings/<int:booking_id>` (ลบ/ยกเลิกการจองโดยแอดมิน)
+- `GET /api/admin/history` (ดึงประวัติการจองทั้งหมดสำหรับแอดมิน)
 - **จุดพรีเซนต์:** ระบบ Dashboard สำหรับเจ้าหน้าที่ และการอัปเดตตัวเลขคิวควบคู่ไปกับสถานะ
 
 ---
 
 ### บทสรุป 
 จับคู่แบบนี้ **ยุติธรรมขั้นสุดยอดครับ** เพราะแบ่งจาก Database 8 ตารางเป๊ะๆ ทุกคนจะได้เขียนโค้ด CRUD (Create, Read, Update, Delete) ครบทุกมิติของตารางตัวเอง โดยมีจุดขายเชิงเทคนิคไปนำเสนออาจารย์แตกต่างกันไปด้วยครับ!
+
+---
+
+### 📊 สรุปจำนวนเส้นทาง (Route Statistics)
+
+จากการวิเคราะห์ไฟล์ในโฟลเดอร์ `views/` ทั้งหมด 8 ไฟล์ พบว่ามีเส้นทางรวมทั้งสิ้น **48 Routes** แบ่งได้ดังนี้:
+
+| ประเภทเส้นทาง | จำนวน | รายละเอียด |
+| :--- | :---: | :--- |
+| **Frontend Routes** | 15 | หน้า UI สำหรับคนไข้และเจ้าหน้าที่ (HTML Rendering) |
+| **API Routes** | 33 | ส่วนเชื่อมต่อข้อมูลหลังบ้าน (JSON API) |
+| **รวมทั้งหมด** | **48** | |
+
+---
+
+### 👥 สรุปแยกตามผู้รับผิดชอบ (By Component)
+
+| ลำดับ | รายการตาราง / ผู้รับผิดชอบ | Frontend | API | รวม |
+| :---: | :--- | :---: | :---: | :---: |
+| 1 | **User** (จัดการคนไข้) | 5 | 3 | 8 |
+| 2 | **Admin** (จัดการเจ้าหน้าที่) | 1 | 2 | 3 |
+| 3 | **Department** (จัดการแผนก) | 1 | 3 | 4 |
+| 4 | **Doctor** (ข้อมูลแพทย์) | 1 | 5 | 6 |
+| 5 | **DoctorToDept** (ผูกแผนก) | 0 | 4 | 4 |
+| 6 | **Slots** (ช่วงเวลา/สแกนเนอร์) | 1 | 5 | 6 |
+| 7 | **Booking** (ฝั่งคนไข้) | 4 | 6 | 10 |
+| 8 | **Booking Management** (แอดมิน) | 2 | 5 | 7 |
+| | **รวมทั้งสิ้น** | **15** | **33** | **48** |
+
+*หมายเหตุ: ข้อมูลอัปเดต ณ วันที่ 11 มีนาคม 2569* 
