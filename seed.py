@@ -49,6 +49,7 @@ def seed_database():
         db.session.flush()
 
         # 4. สร้างหมอ (คนที่ 4)
+        # status: ว่าง ว่างเช้า ว่างบ่าย คิวเต็มวันนี้
         print("Creating Doctors...")
         doc1 = Doctor(
             firstname="ประวัติ",
@@ -108,6 +109,7 @@ def seed_database():
         # 7. สร้าง Booking (คนที่ 7 & 8)
         print("Creating Sample Bookings...")
         # สร้าง QR Code ที่เข้ารหัสจาก National ID
+        # booking_Statu: เสร็จสิ้น รอรับบริการ ยกเลิก
         qr_token = encrypt_national_id(user_national_id)
         
         booking = Booking(

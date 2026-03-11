@@ -15,6 +15,15 @@
   .available-date:hover {
     background-color: #bfdbfe !important; /* blue-200 */
   }
+  
+  /* Gray out disabled (past) dates in Flatpickr */
+  .flatpickr-day.disabled, 
+  .flatpickr-day.disabled:hover {
+      color: #cbd5e1 !important; /* text-slate-300 */
+      background: #f8fafc !important; /* bg-slate-50 */
+      cursor: not-allowed;
+  }
+
   /* ซ่อนปฏิทินของ browser เดิม */
   input[type="date"]::-webkit-inner-spin-button,
   input[type="date"]::-webkit-calendar-picker-indicator {
@@ -171,7 +180,7 @@
           const dateInput = document.getElementById('date');
           const fp = flatpickr(dateInput, {
             dateFormat: "Y-m-d",
-            minDate: "today",
+            minDate: new Date().fp_incr(1), // พรุ่งนี้เป็นต้นไป
             locale: {
               firstDayOfWeek: 1
             },
