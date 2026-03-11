@@ -185,3 +185,10 @@ test_api_v2.py
 create_user_v2.py
 check_db.py
 test_booking_logic.py
+
+seed_admin.py
+seed_and_test.py
+seed_department.py
+test_booking.py
+test_department.py
+test_user_auth.py

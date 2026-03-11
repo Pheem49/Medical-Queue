@@ -55,7 +55,10 @@
   <div id="notificationList" class="grid gap-4">
     {% if notifications %}
       {% for notify in notifications %}
-      <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+      <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4 notification-card"
+           {% if notify.booking_Status == 'รอรับบริการ' %}
+           data-target-time="{{ notify.slot.slot_date.isoformat() }}T{{ notify.slot.start_time.strftime('%H:%M:%S') }}"
+           {% endif %}>
         {% if notify.booking_Status == 'เสร็จสิ้น' %}
         <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -99,6 +102,14 @@
               {% else %} bg-blue-100 text-blue-700 {% endif %}">
               {{ notify.booking_Status }}
             </span>
+            {% if notify.booking_Status == 'รอรับบริการ' %}
+            <div class="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 shadow-sm">
+                <svg class="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-xs font-bold whitespace-nowrap countdown-timer" id="timer-{{ notify.id }}">กำลังคำนวณเวลา...</span>
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -113,9 +124,104 @@
     {% endif %}
   </div>
 
+  <style>
+    @keyframes bounce-subtle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .animate-bounce-subtle {
+      animation: bounce-subtle 2s infinite ease-in-out;
+    }
+  </style>
+  
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // สามารถเพิ่ม logic การกรองแจ้งเตือนได้ที่นี่ในอนาคต
+      
+      const updateCountdowns = () => {
+        const now = new Date();
+        const cards = document.querySelectorAll('.notification-card[data-target-time]');
+        const notificationList = document.getElementById('notificationList');
+        
+        cards.forEach(card => {
+          const targetTimeStr = card.getAttribute('data-target-time');
+          const targetTime = new Date(targetTimeStr);
+          const timerSpan = card.querySelector('.countdown-timer');
+          const id = card.querySelector('.text-xs.text-gray-400').textContent.replace('#', '');
+          const deptName = card.querySelector('p b').textContent;
+          
+          if (!timerSpan) return;
+          
+          const diff = targetTime - now;
+          const timerContainer = timerSpan.parentElement;
+          
+          if (diff <= 0) {
+            timerSpan.textContent = "ถึงเวลานัดแล้ว";
+            timerContainer.classList.remove('bg-blue-50', 'text-blue-600', 'border-blue-100', 'bg-orange-50', 'text-orange-600', 'border-orange-100');
+            timerContainer.classList.add('bg-red-50', 'text-red-600', 'border-red-100');
+            card.classList.remove('border-orange-200', 'bg-orange-50/30');
+            
+            // ลบ Reminder card ถ้ามี
+            const existingReminder = document.getElementById(`reminder-${id}`);
+            if (existingReminder) existingReminder.remove();
+            return;
+          }
+          
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          
+          let result = "อีก ";
+          if (days > 0) result += `${days} วัน `;
+          if (hours > 0) result += `${hours} ชั่วโมง `;
+          result += `${minutes} นาที`;
+          
+          const isUrgent = diff > 0 && diff <= 300000;
+          
+          if (isUrgent) {
+            timerSpan.textContent = "เตรียมตัวให้พร้อม! " + result;
+            timerContainer.classList.remove('bg-blue-50', 'text-blue-600', 'border-blue-100');
+            timerContainer.classList.add('bg-orange-50', 'text-orange-600', 'border-orange-100');
+            card.classList.add('border-orange-200', 'bg-orange-50/30');
+            
+            // เพิ่ม Reminder card ถ้ายังไม่มี
+            if (!document.getElementById(`reminder-${id}`)) {
+              const reminderHTML = `
+                <div id="reminder-${id}" class="bg-orange-50 p-5 rounded-2xl border-2 border-orange-400 shadow-lg animate-bounce-subtle flex items-start gap-4 mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-1">
+                      <h3 class="font-bold text-orange-900 leading-tight text-lg">⚠️ ใกล้ถึงเวลานัดหมายแล้ว!</h3>
+                    </div>
+                    <p class="text-orange-800 font-medium">
+                      เหลือเวลาอีกเพียง <b>5 นาที</b> ในการเข้ารับบริการที่แผนก <b>${deptName}</b> กรุณาเตรียมตัวให้พร้อม
+                    </p>
+                  </div>
+                </div>
+              `;
+              notificationList.insertAdjacentHTML('afterbegin', reminderHTML);
+            }
+          } else {
+            timerSpan.textContent = result;
+            timerContainer.classList.remove('bg-orange-50', 'text-orange-600', 'border-orange-100');
+            timerContainer.classList.add('bg-blue-50', 'text-blue-600', 'border-blue-100');
+            card.classList.remove('border-orange-200', 'bg-orange-50/30');
+            
+            // ลบ Reminder card ถ้ามี (กรณีเวลาขยับออกไป เช่น แก้ไขเวลา แต่น่าจะยากในระบบนี้)
+            const existingReminder = document.getElementById(`reminder-${id}`);
+            if (existingReminder) existingReminder.remove();
+          }
+        });
+      };
+      
+      // อัปเดตทันทีที่โหลดหน้า
+      updateCountdowns();
+      // อัปเดตทุกๆ 1 นาที (60000ms)
+      setInterval(updateCountdowns, 60000);
     });
   </script>
 </main>
