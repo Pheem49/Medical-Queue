@@ -188,6 +188,9 @@ class Booking(db.Model):
     
     # คิวอาร์โค้ดการจอง (เก็บเป็นข้อความ/รหัสอ้างอิงของ QR Code)
     qr_code = db.Column(db.String(255), nullable=True)
+    
+    # หมายเลขคิวรายวัน แยกตามแผนก
+    queue_number = db.Column(db.Integer, nullable=True)
 
     # Relationships
     user = db.relationship('User', backref=db.backref('bookings', lazy=True))
@@ -201,7 +204,8 @@ class Booking(db.Model):
             "booking_at": self.booking_at.isoformat(),
             "booking_Status": self.booking_Status,
             "detail": self.detail,
-            "qr_code": self.qr_code
+            "qr_code": self.qr_code,
+            "queue_number": self.queue_number
         }
         if include_user and self.user:
             data["user"] = self.user.to_dict()

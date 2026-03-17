@@ -130,6 +130,8 @@ def seed_database():
         
         historical_bookings = []
         user_count = len(created_users)
+        # ตัวนับคิวแยกตามแผนกและวันที่
+        queue_counters = {}
         
         for idx, slot in enumerate(past_slots):
             # สลับสถานะ เสร็จสิ้น (80%) และ ยกเลิก (20%)
@@ -140,13 +142,19 @@ def seed_database():
             # จำลองเวลาจองให้เป็นช่วงเวลาก่อนหน้าของ slot นั้นๆ เล็กน้อย
             # ใช้ datetime.now(datetime.UTC) หรือแค่ .now() ทั่วไปก็ได้ แต่ให้แน่ใจว่าค่าถูกต้อง
             booking_time = datetime.combine(slot.slot_date, slot.start_time) - timedelta(minutes=30)
+
+            # คำนวณเลขคิวรายวันแยกตามแผนก
+            key = (slot.department_id, slot.slot_date)
+            queue_counters[key] = queue_counters.get(key, 0) + 1
+            current_q = queue_counters[key]
             
             bk = Booking(
                 slot_id=slot.slot_id,
                 id_users=assigned_user.id,
                 booking_at=booking_time,
                 booking_Status=status,
-                detail=f"อาการปวดคิวที่ {idx+1}",
+                queue_number=current_q,
+                detail=f"อาการปวดคิวที่ {current_q}",
                 qr_code=encrypt_national_id(assigned_user.national_id)
             )
             historical_bookings.append(bk)
@@ -166,19 +174,27 @@ def seed_database():
         today_slot_doc2 = AppointmentSlot.query.filter_by(doctor_id=doctors[1].id, slot_date=today).first()
 
         if today_slot_doc1 and len(created_users) >= 2:
+            key1 = (today_slot_doc1.department_id, today)
+            q1 = queue_counters.get(key1, 0) + 1
+            queue_counters[key1] = q1
             b1 = Booking(
                 slot_id=today_slot_doc1.slot_id,
                 id_users=created_users[0].id,
                 booking_at=datetime.combine(today, time(8, 30)),
                 booking_Status="เสร็จสิ้น",
+                queue_number=q1,
                 detail="ปวดหัว มีไข้สูง",
                 qr_code=encrypt_national_id(created_users[0].national_id)
             )
+
+            q2 = queue_counters[key1] + 1
+            queue_counters[key1] = q2
             b2 = Booking(
                 slot_id=today_slot_doc1.slot_id,
                 id_users=created_users[1].id,
                 booking_at=datetime.combine(today, time(9, 30)),
                 booking_Status="ยกเลิก",
+                queue_number=q2,
                 detail="ทดสอบตรวจเสร็จสิ้น อาการปกติ",
                 qr_code=encrypt_national_id(created_users[1].national_id)
             )
@@ -186,11 +202,15 @@ def seed_database():
             today_slot_doc1.current_booking += 2
 
         if today_slot_doc2 and len(created_users) >= 3:
+            key2 = (today_slot_doc2.department_id, today)
+            q3 = queue_counters.get(key2, 0) + 1
+            queue_counters[key2] = q3
             b3 = Booking(
                 slot_id=today_slot_doc2.slot_id,
                 id_users=created_users[2].id,
                 booking_at=datetime.combine(today, time(8, 0)),
                 booking_Status="เสร็จสิ้น",
+                queue_number=q3,
                 detail="ปวดท้องเรื้อรัง",
                 qr_code=encrypt_national_id(created_users[2].national_id)
             )

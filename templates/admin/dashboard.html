@@ -13,10 +13,17 @@
       <p class="text-gray-500 mt-1">ติดตามรายการนัดหมายและสถานะคนไข้แบบ Real-time</p>
     </div>
     
-    <button onclick="fetchTodayPatients()" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-sm font-medium shadow-sm transition-colors">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-      รีเฟรช
-    </button>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <label for="deptFilter" class="text-sm font-medium text-gray-600 whitespace-nowrap">กรองแผนก:</label>
+        <select id="deptFilter" onchange="filterPatientsByDept()" class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm min-w-[160px]">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+      <button onclick="fetchTodayPatients()" class="p-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 shadow-sm transition-colors" title="รีเฟรช">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+      </button>
+    </div>
   </div>
 
   <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -24,6 +31,7 @@
       <table class="w-full text-sm text-left">
         <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
           <tr>
+            <th scope="col" class="px-6 py-4 font-semibold tracking-wider">หมายเลขคิว</th>
             <th scope="col" class="px-6 py-4 font-semibold tracking-wider">แพลนวัน-เวลา</th>
             <th scope="col" class="px-6 py-4 font-semibold tracking-wider">ชื่อคนไข้</th>
             <th scope="col" class="px-6 py-4 font-semibold tracking-wider">แผนก / แพทย์</th>
@@ -55,10 +63,90 @@
   </section>
 </div>
 
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+<style>
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  .toast-animate-in { animation: slideIn 0.3s ease-out forwards; }
+  .toast-animate-out { animation: fadeOut 0.3s ease-in forwards; }
+</style>
+
 <script>
+let cachedPatients = [];
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    
+    let bgColor = 'bg-blue-600';
+    let icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    
+    if (type === 'success') {
+        bgColor = 'bg-green-600';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    } else if (type === 'error') {
+        bgColor = 'bg-red-600';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    } else if (type === 'warning') {
+        bgColor = 'bg-yellow-500';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+    }
+
+    toast.className = `${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[300px] toast-animate-in font-["Sarabun"]`;
+    toast.innerHTML = `
+        <div class="flex-shrink-0">${icon}</div>
+        <div class="flex-grow font-medium">${message.replace(/\n/g, '<br>')}</div>
+        <button onclick="this.parentElement.remove()" class="flex-shrink-0 hover:opacity-75 transition-opacity">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.replace('toast-animate-in', 'toast-animate-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     fetchTodayPatients();
+    fetchDepartments();
 });
+
+async function fetchDepartments() {
+    const select = document.getElementById('deptFilter');
+    try {
+        const res = await fetch('/api/departments');
+        const data = await res.json();
+        if (data.success) {
+            data.departments.forEach(dept => {
+                const opt = document.createElement('option');
+                opt.value = dept.department_id;
+                opt.textContent = dept.name;
+                select.appendChild(opt);
+            });
+        }
+    } catch (e) { console.error('Error fetching departments:', e); }
+}
+
+function filterPatientsByDept() {
+    const deptId = document.getElementById('deptFilter').value;
+    if (!deptId) {
+        renderPatients(cachedPatients);
+    } else {
+        const filtered = cachedPatients.filter(p => p.slot?.department_id == deptId);
+        renderPatients(filtered);
+    }
+}
 
 async function fetchTodayPatients() {
     const tbody = document.getElementById('patientTableBody');
@@ -71,62 +159,73 @@ async function fetchTodayPatients() {
         const res = await fetch(`/api/admin/bookings?date=${today}`);
         const data = await res.json();
         
-        tbody.innerHTML = '';
-        
-        if (!data || data.length === 0) {
-            emptyState.classList.remove('hidden');
-            return;
-        }
-        
-        emptyState.classList.add('hidden');
-
-        data.forEach(booking => {
-            const tr = document.createElement('tr');
-            tr.className = 'hover:bg-gray-50 transition-colors group font-["Sarabun"]';
-            
-            let statusBadge = '';
-            const status = booking.status || booking.booking_Status;
-            
-            if (status === 'เสร็จสิ้น') {
-                statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">เสร็จสิ้น</span>';
-            } else if (status === 'รอรับบริการ') {
-                statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">รอรับบริการ</span>';
-            } else if (status === 'ยกเลิก') {
-                statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">ยกเลิก</span>';
-            } else {
-                statusBadge = `<span class="px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">${status}</span>`;
-            }
-
-            const formattedDate = booking.slot?.slot_date 
-                ? new Date(booking.slot.slot_date).toLocaleDateString('th-TH') 
-                : '-';
-
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-gray-900 font-medium">${formattedDate}</div>
-                    <div class="text-gray-500 text-xs mt-0.5">${booking.slot?.start_time || '-'} - ${booking.slot?.end_time || '-'}</div>
-                </td>
-                <td class="px-6 py-4">
-                    <div class="text-gray-900 font-medium">${booking.user?.first_name || ''} ${booking.user?.last_name || 'ไม่ระบุชื่อ'}</div>
-                    <div class="text-gray-500 text-xs mt-0.5">${booking.user?.national_id || '-'}</div>
-                </td>
-                <td class="px-6 py-4">
-                    <div class="text-gray-900 font-medium">${booking.slot?.department?.name || '-'}</div>
-                    <div class="text-gray-500 text-xs mt-0.5">นพ. ${booking.slot?.doctor?.firstname || ''} ${booking.slot?.doctor?.lastname || '-'}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    ${statusBadge}
-                </td>
-                <td class="px-6 py-4 text-right whitespace-nowrap">
-                    <a href="/staff/checkin?id=${booking.id}" class="text-blue-600 hover:text-blue-900 font-medium">จัดการคิว</a>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+        cachedPatients = data || []; // เก็บข้อมูลไว้เรียกใช้ client-side
+        filterPatientsByDept(); // เรียกใช้ filter เพื่อ render ครั้งแรก (รองรับหากเลือกค้างไว้)
     } catch (error) {
         console.error('Error:', error);
-        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
     }
+}
+
+function renderPatients(data) {
+    const tbody = document.getElementById('patientTableBody');
+    const emptyState = document.getElementById('dashboardEmptyState');
+    tbody.innerHTML = '';
+    
+    if (!data || data.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+
+    data.forEach(booking => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition-colors group font-["Sarabun"]';
+        
+        let statusBadge = '';
+        const status = booking.status || booking.booking_Status;
+        
+        if (status === 'เสร็จสิ้น') {
+            statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">เสร็จสิ้น</span>';
+        } else if (status === 'รอรับบริการ') {
+            statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">รอรับบริการ</span>';
+        } else if (status === 'ยกเลิก') {
+            statusBadge = '<span class="px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">ยกเลิก</span>';
+        } else {
+            statusBadge = `<span class="px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">${status}</span>`;
+        }
+
+        const formattedDate = booking.slot?.slot_date 
+            ? new Date(booking.slot.slot_date).toLocaleDateString('th-TH') 
+            : '-';
+
+        tr.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-blue-600 font-bold text-lg">#${booking.queue_number || '-'}</div>
+                <div class="text-[10px] text-gray-400 font-mono mt-0.5">ID: ${booking.id}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-gray-900 font-medium">${formattedDate}</div>
+                <div class="text-gray-500 text-xs mt-0.5">${booking.slot?.start_time || '-'} - ${booking.slot?.end_time || '-'}</div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-gray-900 font-medium">${booking.user?.first_name || ''} ${booking.user?.last_name || 'ไม่ระบุชื่อ'}</div>
+                <div class="text-gray-500 text-xs mt-0.5">${booking.user?.national_id || '-'}</div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-gray-900 font-medium">${booking.slot?.department?.name || '-'}</div>
+                <div class="text-gray-500 text-xs mt-0.5">นพ. ${booking.slot?.doctor?.firstname || ''} ${booking.slot?.doctor?.lastname || '-'}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                ${statusBadge}
+            </td>
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+                <a href="/staff/checkin?id=${booking.id}" class="text-blue-600 hover:text-blue-900 font-medium">จัดการคิว</a>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 </script>
 

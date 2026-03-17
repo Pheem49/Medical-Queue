@@ -123,6 +123,7 @@ def api_decrypt_qr():
             "slot_date": slot.slot_date.isoformat() if slot.slot_date else None,
             "start_time": slot.start_time.strftime('%H:%M') if slot.start_time else None,
             "end_time": slot.end_time.strftime('%H:%M') if slot.end_time else None,
+            "queue_number": booking.queue_number,
             "doctor_name": f"{doctor.firstname} {doctor.lastname}",
             "department_name": dept.name
         }
