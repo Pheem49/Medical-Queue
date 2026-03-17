@@ -192,3 +192,7 @@ seed_department.py
 test_booking.py
 test_department.py
 test_user_auth.py
+
+# Cloudflare Tunnel
+cloudflared*
+.cloudflared/
