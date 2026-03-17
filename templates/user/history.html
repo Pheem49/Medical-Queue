@@ -105,7 +105,11 @@
               </div>
               <div class="text-right w-full sm:w-auto">
                 <span class="text-xs text-gray-400 block mb-1">หมายเลขคิว</span>
-                <span class="font-mono text-gray-800 font-bold">#${booking.booking_id}</span>
+                <span class="font-mono text-gray-800 font-bold block text-lg">#${booking.queue_number || '--'}</span>
+                <div class="mt-2 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 inline-block">
+                  <span class="text-[10px] font-bold text-gray-500 uppercase">BookingID:</span>
+                  <span class="text-xs font-mono font-bold text-gray-700">${booking.booking_id}</span>
+                </div>
               </div>
             `;
               historyContainer.appendChild(historyCard);
