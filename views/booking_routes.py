@@ -184,7 +184,11 @@ def History():
 
 @booking_bp.route("/api/booking/<int:booking_id>", methods=["GET"])
 def api_get_booking_details(booking_id):
-    user_id = request.args.get('user_id', 1, type=int) 
+    # ตรวจสอบความสิทธิ์การเข้าถึงข้อมูล (UT-10 Security Fix)
+    if 'user_id' not in session:
+        return jsonify({"status": "error", "message": "กรุณาเข้าสู่ระบบก่อน"}), 401
+        
+    user_id = session['user_id']
     result = get_booking_details(user_id=user_id, booking_id=booking_id)
     
     if result["success"]:
