@@ -74,12 +74,19 @@
     </div>
     
     <!-- Status Filter -->
-    <div class="w-full md:w-48">
+    <div class="w-full md:w-44">
       <select id="statusFilter" class="block w-full py-2 pl-3 pr-10 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
         <option value="all">สถานะทั้งหมด</option>
         <option value="เสร็จสิ้น">เสร็จสิ้น</option>
         <option value="รอรับบริการ">รอรับบริการ</option>
         <option value="ยกเลิก">ยกเลิก</option>
+      </select>
+    </div>
+
+    <!-- Department Filter -->
+    <div class="w-full md:w-56">
+      <select id="deptFilter" class="block w-full py-2 pl-3 pr-10 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
+        <option value="all">แผนกทั้งหมด</option>
       </select>
     </div>
 
@@ -99,12 +106,12 @@
       <table class="w-full text-sm text-left">
         <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
           <tr>
+            <th scope="col" class="px-6 py-4 font-semibold tracking-wider">หมายเลขคิว</th>
             <th scope="col" class="px-6 py-4 font-semibold tracking-wider">Booking ID</th>
             <th scope="col" class="px-6 py-4 font-semibold tracking-wider">แพลนวัน-เวลา</th>
             <th scope="col" class="px-6 py-4 font-semibold tracking-wider">ชื่อคนไข้</th>
             <th scope="col" class="px-6 py-4 font-semibold tracking-wider">แผนก / แพทย์</th>
             <th scope="col" class="px-6 py-4 font-semibold tracking-wider">สถานะ</th>
-            <th scope="col" class="px-6 py-4 font-semibold tracking-wider text-right">หมายเหตุ</th>
           </tr>
         </thead>
         <tbody id="tableBody" class="divide-y divide-gray-100">
@@ -136,12 +143,30 @@ let allBookings = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchHistoryData();
+    fetchDepartments();
 
     // Event Listeners for Filters
     document.getElementById('searchInput').addEventListener('input', applyFilters);
     document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('deptFilter').addEventListener('change', applyFilters);
     document.getElementById('dateFilter').addEventListener('change', applyFilters);
 });
+
+async function fetchDepartments() {
+    const select = document.getElementById('deptFilter');
+    try {
+        const res = await fetch('/api/departments');
+        const data = await res.json();
+        if (data.success) {
+            data.departments.forEach(dept => {
+                const opt = document.createElement('option');
+                opt.value = dept.name; // Filter by name matches booking.department_name
+                opt.textContent = dept.name;
+                select.appendChild(opt);
+            });
+        }
+    } catch (e) { console.error('Error fetching departments:', e); }
+}
 
 async function fetchHistoryData() {
     setLoading(true);
@@ -166,6 +191,7 @@ async function fetchHistoryData() {
 function applyFilters() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     const statusVal = document.getElementById('statusFilter').value;
+    const deptVal = document.getElementById('deptFilter').value;
     const dateVal = document.getElementById('dateFilter').value;
 
     const filtered = allBookings.filter(booking => {
@@ -177,6 +203,9 @@ function applyFilters() {
         const statusMatch = statusVal === 'all' || 
             (booking.status && booking.status === statusVal);
             
+        const deptMatch = deptVal === 'all' || 
+            (booking.department_name && booking.department_name === deptVal);
+
         // Compare with YYYY-MM-DD
         let dateMatch = true;
         if(dateVal && booking.slot_date) {
@@ -187,7 +216,7 @@ function applyFilters() {
             dateMatch = localISOTime === dateVal;
         }
 
-        return searchMatch && statusMatch && dateMatch;
+        return searchMatch && statusMatch && deptMatch && dateMatch;
     });
 
     renderTable(filtered);
@@ -197,6 +226,7 @@ function applyFilters() {
 function clearFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('statusFilter').value = 'all';
+    document.getElementById('deptFilter').value = 'all';
     document.getElementById('dateFilter').value = '';
     applyFilters();
 }
@@ -236,6 +266,10 @@ function renderTable(bookings) {
 
         tr.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-blue-600 font-bold text-lg">#${booking.queue_number || '-'}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="text-[10px] text-gray-400 font-mono block">BookingID:</span>
                 <span class="font-mono font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded">#${booking.booking_id}</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
@@ -252,13 +286,6 @@ function renderTable(bookings) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 ${statusBadge}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right">
-                <div title="${booking.detail || 'ไม่มีอาการ/หมายเหตุ'}" class="cursor-help inline-block text-gray-400 hover:text-blue-500">
-                    <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
             </td>
         `;
         tbody.appendChild(tr);

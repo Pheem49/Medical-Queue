@@ -23,39 +23,13 @@
     </h1>
   </div>
 
-  <!-- ตัวกรอง -->
-  <div class="flex gap-2 mb-8 flex-wrap">
-    <button
-      class="px-4 py-2 rounded-full bg-blue-600 text-white font-medium text-sm transition"
-      data-filter="all"
-    >
-      ทั้งหมด
-    </button>
-    <button
-      class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-300 transition"
-      data-filter="appointment"
-    >
-      นัดหมาย
-    </button>
-    <button
-      class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-300 transition"
-      data-filter="reminder"
-    >
-      เตือนความจำ
-    </button>
-    <button
-      class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-300 transition"
-      data-filter="system"
-    >
-      ระบบ
-    </button>
-  </div>
 
   <!-- รายการแจ้งเตือน -->
   <div id="notificationList" class="grid gap-4">
     {% if notifications %}
       {% for notify in notifications %}
       <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4 notification-card"
+            data-booking-id="{{ notify.id }}"
            {% if notify.booking_Status == 'รอรับบริการ' %}
            data-target-time="{{ notify.slot.slot_date.isoformat() }}T{{ notify.slot.start_time.strftime('%H:%M:%S') }}"
            {% endif %}>
@@ -81,10 +55,13 @@
               {% elif notify.booking_Status == 'ยกเลิก' %}
                 การจองของคุณถูกยกเลิก
               {% else %}
-                ยืนยันการจองคิวสำเร็จ
+                ยืนยืนการจองคิวสำเร็จ
               {% endif %}
             </h3>
-            <span class="text-xs text-gray-400 whitespace-nowrap ml-2">#{{ notify.id }}</span>
+            <div class="px-2 py-0.5 bg-gray-50 border border-gray-100 rounded text-gray-400 whitespace-nowrap ml-2">
+              <span class="text-[10px] font-bold uppercase tracking-tight">BookingID:</span>
+              <span class="text-xs font-mono font-bold text-gray-500">{{ notify.id }}</span>
+            </div>
           </div>
           <p class="text-sm text-gray-600 mb-2">
             {% if notify.booking_Status == 'เสร็จสิ้น' %}
@@ -92,7 +69,7 @@
             {% elif notify.booking_Status == 'ยกเลิก' %}
               รายการจองที่แผนก **{{ notify.slot.department.name }}** ถูกยกเลิกแล้ว
             {% else %}
-              คุณได้คิวหมายเลข **#{{ notify.id }}** แผนก **{{ notify.slot.department.name }}** พบคุณหมอ **{{ notify.slot.doctor.firstname }}**
+              คุณได้คิวหมายเลข **#{{ notify.queue_number or '--' }}** แผนก **{{ notify.slot.department.name }}** พบคุณหมอ **{{ notify.slot.doctor.firstname }}**
             {% endif %}
           </p>
           <div class="flex items-center gap-3">
@@ -147,7 +124,7 @@
           const targetTimeStr = card.getAttribute('data-target-time');
           const targetTime = new Date(targetTimeStr);
           const timerSpan = card.querySelector('.countdown-timer');
-          const id = card.querySelector('.text-xs.text-gray-400').textContent.replace('#', '');
+          const id = card.getAttribute('data-booking-id');
           const deptName = card.querySelector('p b').textContent;
           
           if (!timerSpan) return;
