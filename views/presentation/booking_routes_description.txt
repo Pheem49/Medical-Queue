@@ -1,0 +1,86 @@
+คำอธิบายการทำงานของ Route ทั้งหมดในไฟล์ `views/booking_routes.py`
+ไฟล์นี้รับผิดชอบเกี่ยวกับการจัดการจองคิว/เลื่อน/ยกเลิก/ดูประวัติ ในมุมมองของผู้ป่วย (คนไข้)
+
+======================================================================
+1. GET /booking
+- ทำหน้าที่: เป็นหน้าจอแสดงแบบฟอร์มการจองคิวปกติ หรือแสดงฟอร์มสำหรับ "เลื่อนนัด" (Reschedule)
+- เชื่อมไปไฟล์ไหน: เรนเดอร์หน้า UI ไปที่แทมเพลต `user/booking.html`
+- การจัดการข้อมูล/Database (ดึง/เช็ค):
+  > ดึงข้อมูล (Read): ดึงข้อมูลจากโมเดล `Booking`, `AppointmentSlot`, `Doctor`, `Department` ในกรณีที่มีรหัสเลื่อนนัดส่งมา
+  > ตรวจสอบเงื่อนไข (Read): เรียกใช้เซอร์วิส `services.booking_service.get_active_booking` เพื่อเช็คว่า User มีคิวที่รอดำเนินการอยู่หรือไม่เพื่อป้องกันการจองซ้อน
+- ส่ง/รับข้อมูล: รับค่า `reschedule` จาก URL Query String เพื่อแยกว่าจองใหม่หรือเลื่อนคิว ส่งค่าข้อมูลแผนก/หมอ (reschedule_data) ไปหน้า HTML
+
+2. GET /booking/confirm
+- ทำหน้าที่: หน้าจอสรุป/ยืนยันข้อมูลก่อนกดจองคิวหรือยืนยันเลื่อนนัด
+- เชื่อมไปไฟล์ไหน: เรนเดอร์หน้า UI ไปที่แทมเพลต `user/confirm_booking.html`
+- การจัดการข้อมูล/Database (ดึง/เช็ค):
+  > ดึงข้อมูล (Read): ผูก (Join) ข้อมูลจากโมเดล `AppointmentSlot`, `Doctor`, `Department` เข้าด้วยกันเพื่อหาข้อมูลของคิวนั้นๆ และเช็คโมเดล `User` ว่ามีตัวตนจริง
+  > ตรวจสอบเงื่อนไข (Read): ป้องกันการจองคิวซ้อน (เรียก `get_active_booking`) และเช็คว่าวันจองต้องล่วงหน้าอย่างน้อย 1 วัน
+- ส่ง/รับข้อมูล: รับ `slot_id`, `detail`, `reschedule` จาก Query ส่งตัวแปรเช่น user, slot, doctor, department ไปแสดงใน HTML
+
+3. POST /api/bookings
+- ทำหน้าที่: API สำหรับนำข้อมูลจากหน้ายืนยันมา "สร้าง/บันทึกการจองใหม่" (Create Booking) จริงๆ ลงในระบบ
+- เชื่อมไปไฟล์ไหน: เรียกใช้งาน Service `services.booking_service.create_booking` และ `get_active_booking`
+- การจัดการข้อมูล/Database (สร้าง):
+  > เพิ่มข้อมูล (Create): การบันทึกลง Database ถูกห่อหุ้มไว้ในเซอร์วิส `create_booking`
+- ส่ง/รับข้อมูล/ลบแก้ไข: รับข้อมูลเข้าเป็น JSON มี `slot_id`, `detail` และเช็คผ่านตัวแปร `user_id` ใน Session ถ้าทำสำเร็จ API จะส่งผลลัพธ์กลับเป็น JSON ที่มี `booking_id` และ รหัส QR Code
+
+4. PUT /api/booking/<booking_id>/reschedule
+- ทำหน้าที่: API สำหรับบันทึกการ "เลื่อนนัด"
+- เชื่อมไปไฟล์ไหน: เรียกใช้งาน Service `services.booking_service.reschedule_booking`
+- การจัดการข้อมูล/Database (อัปเดต):
+  > แก้ไข (Update): ดำเนินการอัปเดตข้อมูลตาราง Booking ในฐานข้อมูล (เช่นเปลี่ยน slot_id ใหม่) ผ่านฟังก์ชันเซอร์วิส
+- ส่ง/รับข้อมูล: รับ ID ของคิวที่ต้องการเลื่อนทาง URL และรับค่า JSON เป็นตารางเวลาใหม่ (`slot_id`, `detail`) คืนค่า JSON คอนเฟิร์มการอัปเดต
+
+5. GET /mytickets
+- ทำหน้าที่: แสดงหน้า "คิวของฉัน" (คิวที่กำลังจะมีขึ้น)
+- เชื่อมไปไฟล์ไหน: เรนเดอร์หน้า `user/mytickets.html`
+- ข้อมูล: ตัวข้อมูลคิวจะถูกหน้าเว็บไปเรียกจาก API (/api/history หรือสร้างใหม่) แยกต่างหาก นี่คือการเสิร์ฟหน้า UI เฉยๆ
+
+6. GET /history
+- ทำหน้าที่: แสดงหน้า "ประวัติการเข้ารับบริการทั้งหมด"
+- เชื่อมไปไฟล์ไหน: เรนเดอร์หน้า `user/history.html`
+- ข้อมูล: เช่นกัน เป็นการเสิร์ฟหน้า UI ก่อน เดี๋ยวหน้า UI จะไปดึง API มาแสดงผลเอง
+
+7. GET /api/booking/<booking_id>
+- ทำหน้าที่: API สำหรับดึง "รายละเอียดของการจอง 1 รายการ" แบบเจาะจง
+- เชื่อมไปไฟล์ไหน: เรียกใช้ Service `services.booking_service.get_booking_details`
+- การจัดการข้อมูล/Database (ดึง): 
+  > ดึงข้อมูล (Read): คิวรี่รายละเอียดของ Booking ID และ User ID นั้นๆ คืนมาเป็น Dictionary สำหรับ Frontend
+- ส่ง/รับข้อมูล: รับ Booking ID จาก URL คืนค่า JSON ที่เป็นรายละเอียดของคิว เช่นชื่อแพทย์ สถานะ วันเวลา
+
+8. POST /api/booking/<booking_id>/cancel
+- ทำหน้าที่: API สำหรับ "ยกเลิกการจอง"
+- เชื่อมไปไฟล์ไหน: เรียกใช้ Service `services.booking_service.cancel_booking`
+- การจัดการข้อมูล/Database (แก้ไข/ลบซอฟต์ล็อก): 
+  > ลบ/แก้ไข (Update/Delete): ไปยัง Service เพื่อเปลี่ยนสถานะตารางจาก Active เป็น Cancelled หรือเปลี่ยนจำนวนคราวที่รับผู้ป่วย
+- ส่ง/รับข้อมูล: รับ Booking ID ผ่าน URL พร้อมตัวระบุ Session ยืนยันว่าใคร แล้วส่ง JSON Response สถานะเป็น Success กลับไป
+
+9. GET /api/history
+- ทำหน้าที่: API สำหรับดึงลิสต์ "ประวัติการจองทั้งหมดของผู้ใช้คนปัจจุบัน"
+- เชื่อมไปไฟล์ไหน: เรียกใช้ Service `services.booking_service.get_patient_history`
+- การจัดการข้อมูล/Database (ดึง):
+  > ดึงข้อมูล (Read): ดึงรายการจองของผู้ป่วย (เป็น List) ทั้งหมดแยกสถานะ หรือเรียงตามเวลา
+- ส่ง/รับข้อมูล: เช็ค Session User ID แล้วส่งไปประมวลผล กลับมาเป็น JSON Array เอาไปวนลูปลงตารางในหน้า mytickets/history
+
+10. GET /api/doctor/<doctor_id>/available-dates
+- ทำหน้าที่: API สำหรับดึงวันที่แพทย์ (หมอ) ที่ระบุมีคิวว่างให้บริการ
+- เชื่อมไปไฟล์ไหน: เรียกใช้ Service `services.booking_service.get_available_dates`
+- การจัดการข้อมูล/Database (ดึง):
+  > ดึงข้อมูล (Read): ตรวจสอบตารางตารางของหมอที่อยู่ในช่วง AppointmentSlot
+- ส่ง/รับข้อมูล: รับ ID หมอจากพารามิเตอร์ของเส้นทาง (Path Parameter) ตอบกลับเป็นลิสต์ของวันที่ในรูปแบบ JSON
+
+======================================================================
+5. การเชื่อมโยงกับไฟล์หน้าเว็บ (Templates):
+ไฟล์ Route นี้เชื่อมต่อไปยังโฟลเดอร์ `templates/user/` หลักๆ 4 ไฟล์ ดังนี้ครับ:
+- `booking.html`: ถูกเรียกเมื่อเข้า `GET /booking` (หน้าเลือกจอง/เลื่อนนัด) และมีการเรียก API `GET /api/doctor/<id>/available-dates` ซ่อนอยู่ข้างในเพื่อดึงวันว่างหมอขึ้นปฏิทิน
+- `confirm_booking.html`: ถูกเรียกเมื่อเข้า `GET /booking/confirm` (หน้ากดยืนยันจอง) และเมื่อกดยืนยันจะเรียกไปที่ API `POST /api/bookings` (จอง) ลึกๆ หรือ `PUT /api/booking/<id>/reschedule` (เลื่อนคิว)
+- `mytickets.html`: ถูกเรียกเมื่อเข้า `GET /mytickets` (หน้าแสดงบัตรคิวของฉัน) โดยหน้าเว็บจะใช้สคริปต์ไปดึง API `GET /api/history`, `GET /api/booking/<id>` รวมถึงใช้ส่งคำขอยกเลิกนัดหมาย `POST /api/booking/<id>/cancel`
+- `history.html`: ถูกเรียกเมื่อเข้า `GET /history` (หน้าประวัติย้อนหลัง) โดยใช้ JavaScript วิ่งไปดึง JSON จากเส้น `GET /api/history` มารันลูปสร้างตาราง
+
+======================================================================
+สรุป:
+1. ไฟล์นี้ทำงานเป็น Controller ฝั่ง View Blueprint และ API ทั่วไป
+2. ข้อมูลถูก ดึง(Read) ในไฟล์นี้สำหรับหน้า View (GET) ผ่านความสัมพันธ์ของ Model sqlalchemy (`db.session.query`).
+3. กิจกรรม สร้าง (Create), ลบ/ยกเลิก (Delete), แก้ไข (Update) ถูกทำใน API Endpoint และโยนไปรันต่อที่ Service File (services/booking_service.py) เพื่อไม่ให้ทำลายกระบวนการ MVC/Repository pattern
+4. การรับส่ง Data ข้ามไปยังไฟล์ Service ส่วนใหญ่ใช้ Session ควบคุมตัวตน และมี Request Object (args, json) รับค่าจาก Frontend เสมอ
