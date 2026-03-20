@@ -10,13 +10,10 @@ department_bp = Blueprint('department', __name__)
 @department_bp.route("/", methods=["GET"])
 def Home():
     from flask import session
-    from models import Booking
     active_booking = None
     if 'user_id' in session:
-        active_booking = Booking.query.filter(
-            Booking.id_users == session['user_id'],
-            Booking.booking_Status == 'รอรับบริการ'
-        ).first()
+        from services.booking_service import get_active_booking
+        active_booking = get_active_booking(session['user_id'])
     return render_template("user/home.html", title="Home", has_active_booking=(active_booking is not None), active_booking=active_booking)
 
 from services.department_service import get_all_departments, add_department, update_department

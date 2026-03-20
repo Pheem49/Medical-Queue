@@ -116,14 +116,28 @@
               <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full opacity-50 z-0"></div>
               
               <div class="relative z-10">
-                <h3 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center border-b border-gray-100 pb-3">
+                <h3 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
                   <span class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     คิวปัจจุบันของคุณ
                   </span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-blue-600 font-bold text-lg md:text-xl">#{{ active_booking.queue_number or '--' }}</span>
+                    <div class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                      <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">BookingID:</span>
+                      <span class="text-[10px] font-mono font-bold text-gray-600">{{ active_booking.id }}</span>
+                    </div>
+                  </div>
                 </h3>
                 
                 <div class="space-y-3">
+                  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50">
+                    <span class="text-gray-500 text-xs sm:text-sm font-medium mb-1 sm:mb-0">วันที่นัดหมาย</span>
+                    <span class="font-mono font-bold text-gray-900 bg-white px-2 py-1 rounded shadow-sm border border-gray-100 text-sm sm:text-base">
+                      {{ active_booking.slot.slot_date.strftime('%d %B %Y') }}
+                    </span>
+                  </div>
+                  
                   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50">
                     <span class="text-gray-500 text-xs sm:text-sm font-medium mb-1 sm:mb-0">เวลาตรวจ</span>
                     <span class="font-mono font-bold text-gray-900 bg-white px-2 py-1 rounded shadow-sm border border-gray-100 text-sm sm:text-base">
@@ -149,10 +163,16 @@
                         {{ active_booking.booking_Status }}
                       </span>
                     </div>
-                    <a href="{{ url_for('booking.MyTickets') }}" class="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 flex items-center gap-1">
-                      ดูบัตรคิว
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
+                    <div class="flex items-center gap-3">
+                      <a href="{{ url_for('booking.BookingPage', reschedule=active_booking.id) }}" class="text-xs sm:text-sm text-yellow-600 hover:text-yellow-800 font-semibold underline underline-offset-2 flex items-center gap-1">
+                        เลื่อนนัด
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                      </a>
+                      <a href="{{ url_for('booking.MyTickets') }}" class="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 flex items-center gap-1">
+                        ดูบัตรคิว
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

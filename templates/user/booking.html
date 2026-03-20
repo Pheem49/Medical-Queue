@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
-<!-- หน้าจองคิว -->
+<!-- หน้าจองคิวตรวจ -->
 {% block content %}
+
+<!-- Store reschedule_id if present -->
+<input type="hidden" id="reschedule_id" value="{{ reschedule_id or '' }}">
 <!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
@@ -15,6 +18,15 @@
   .available-date:hover {
     background-color: #bfdbfe !important; /* blue-200 */
   }
+  
+  /* Gray out disabled (past) dates in Flatpickr */
+  .flatpickr-day.disabled, 
+  .flatpickr-day.disabled:hover {
+      color: #cbd5e1 !important; /* text-slate-300 */
+      background: #f8fafc !important; /* bg-slate-50 */
+      cursor: not-allowed;
+  }
+
   /* ซ่อนปฏิทินของ browser เดิม */
   input[type="date"]::-webkit-inner-spin-button,
   input[type="date"]::-webkit-calendar-picker-indicator {
@@ -26,8 +38,42 @@
 <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
   <div class="mb-8">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-      จองคิวตรวจรักษา
+      {% if reschedule_id %}เลื่อนนัดหมาย{% else %}จองคิวตรวจรักษา{% endif %}
     </h1>
+
+    {% if reschedule_id and reschedule_data %}
+    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-10 shadow-sm animate-fade-in">
+      <div class="flex flex-col md:flex-row items-center gap-4">
+        <div class="bg-white p-3 rounded-xl shadow-sm flex-shrink-0">
+          <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="flex-grow text-center md:text-left">
+          <div class="flex flex-col md:flex-row md:items-center gap-2 mb-1">
+            <span class="px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-bold rounded-md uppercase tracking-wider inline-block w-fit mx-auto md:mx-0">ข้อมูลการเลื่อนนัด</span>
+            <h2 class="text-base md:text-lg font-semibold text-slate-700">
+              <span class="text-blue-600 font-bold">BookingID: #{{ reschedule_id }}</span>
+            </h2>
+          </div>
+          <div class="flex flex-wrap justify-center md:justify-start items-center gap-x-6 gap-y-1 mt-2">
+            <div class="flex items-center gap-2 text-slate-500">
+              <span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">แผนก:</span>
+              <span class="text-sm font-medium">{{ reschedule_data.department_name }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-500 border-l border-slate-200 pl-6 hidden md:flex">
+              <span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">แพทย์:</span>
+              <span class="text-sm font-bold">{{ reschedule_data.doctor_name }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-500 md:hidden">
+              <span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">แพทย์:</span>
+              <span class="text-sm font-bold">{{ reschedule_data.doctor_name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
     <div class="flex items-center justify-between relative max-w-xl mx-auto mb-10">
       <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 -z-10"></div>
@@ -49,9 +95,9 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- Left Column: Doctor & Dept -->
-    <div class="space-y-6">
+  <div class="{% if reschedule_id %}max-w-2xl mx-auto w-full{% else %}grid grid-cols-1 lg:grid-cols-2 gap-8{% endif %}">
+    <!-- Left Column: Doctor & Dept (Hidden in Reschedule Mode) -->
+    <div class="space-y-6 {% if reschedule_id %}hidden{% endif %}">
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <label class="block text-gray-700 font-bold mb-3 flex items-center gap-2">
           <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,7 +217,7 @@
           const dateInput = document.getElementById('date');
           const fp = flatpickr(dateInput, {
             dateFormat: "Y-m-d",
-            minDate: "today",
+            minDate: new Date().fp_incr(1), // พรุ่งนี้เป็นต้นไป
             locale: {
               firstDayOfWeek: 1
             },
@@ -293,17 +339,33 @@
           document.getElementById('nextBtn').addEventListener('click', async () => {
             const selectedSlot = document.querySelector('input[name="slot"]:checked');
             if (!selectedSlot) {
-              alert('กรุณาเลือกช่วงเวลา');
+              showToast('กรุณาเลือกช่วงเวลา', 'warning');
               return;
             }
 
             const slotId = selectedSlot.value;
             const detail = document.getElementById('symptoms').value;
+            const rescheduleId = document.getElementById('reschedule_id').value;
 
             // แทนที่จะบันทึกลงฐานข้อมูลเลย ให้ย้ายไปหน้ายืนยันข้อมูลพร้อมส่งพารามิเตอร์ไป
-            window.location.href = `/booking/confirm?slot_id=${slotId}&detail=${encodeURIComponent(detail)}`;
+            let url = `/booking/confirm?slot_id=${slotId}&detail=${encodeURIComponent(detail)}`;
+            if (rescheduleId) {
+                url += `&reschedule=${rescheduleId}`;
+            }
+            window.location.href = url;
           });
 
+          // ----- Auto-load for Reschedule Mode -----
+          const rescheduleId = document.getElementById('reschedule_id').value;
+          if (rescheduleId && "{{ reschedule_data.doctor_id if reschedule_data else '' }}") {
+              window.selectedDoctorId = "{{ reschedule_data.doctor_id if reschedule_data else '' }}";
+              
+              // แสดงส่วนวันที่/ทันที
+              document.getElementById('dateTimeSection').classList.remove('opacity-50', 'pointer-events-none');
+              
+              // ดึงวันที่หมอว่าง
+              updateAvailableDates(window.selectedDoctorId);
+          }
         });
       </script>
 
@@ -322,11 +384,11 @@
         </div>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 {% if reschedule_id %}hidden{% endif %}">
         <label class="block text-gray-700 font-bold mb-3">อาการเบื้องต้น / สาเหตุที่มาตรวจ</label>
         <textarea id="symptoms" rows="3"
           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="เช่น มีไข้สูง ปวดหัว ตัวร้อน เป็นมา 2 วัน..."></textarea>
+          placeholder="เช่น มีไข้สูง ปวดหัว ตัวร้อน เป็นมา 2 วัน...">{{ reschedule_data.detail if reschedule_data else '' }}</textarea>
       </div>
     </div>
 
@@ -365,10 +427,65 @@
       </button>
     </div>
 
-
   </div>
+  
   </div>
 </main>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+<style>
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  .toast-animate-in { animation: slideIn 0.3s ease-out forwards; }
+  .toast-animate-out { animation: fadeOut 0.3s ease-in forwards; }
+</style>
+
+<script>
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    
+    let bgColor = 'bg-blue-600';
+    let icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    
+    if (type === 'success') {
+        bgColor = 'bg-green-600';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    } else if (type === 'error') {
+        bgColor = 'bg-red-600';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    } else if (type === 'warning') {
+        bgColor = 'bg-yellow-500';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+    }
+
+    toast.className = `${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[300px] toast-animate-in font-["Sarabun"] z-[100]`;
+    toast.innerHTML = `
+        <div class="flex-shrink-0">${icon}</div>
+        <div class="flex-grow font-medium text-sm leading-relaxed">${message.replace(/\n/g, '<br>')}</div>
+        <button onclick="this.parentElement.remove()" class="flex-shrink-0 hover:opacity-75 transition-opacity p-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.replace('toast-animate-in', 'toast-animate-out');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 5000);
+}
+</script>
 
 <!-- Flatpickr JS -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

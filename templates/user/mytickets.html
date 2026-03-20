@@ -34,10 +34,63 @@
   </div>
 </main>
 
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+<style>
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  .toast-animate-in { animation: slideIn 0.3s ease-out forwards; }
+  .toast-animate-out { animation: fadeOut 0.3s ease-in forwards; }
+</style>
+
 <!-- Load qrcode.js library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    
+    let bgColor = 'bg-blue-600';
+    let icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    
+    if (type === 'success') {
+        bgColor = 'bg-green-600';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    } else if (type === 'error') {
+        bgColor = 'bg-red-600';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    } else if (type === 'warning') {
+        bgColor = 'bg-yellow-500';
+        icon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+    }
+
+    toast.className = `${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[300px] toast-animate-in font-["Sarabun"] z-[100]`;
+    toast.innerHTML = `
+        <div class="flex-shrink-0">${icon}</div>
+        <div class="flex-grow font-medium text-sm leading-relaxed">${message.replace(/\n/g, '<br>')}</div>
+        <button onclick="this.parentElement.remove()" class="flex-shrink-0 hover:opacity-75 transition-opacity p-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.replace('toast-animate-in', 'toast-animate-out');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 5000);
+}
+
   document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('bookingsContainer');
 
@@ -93,10 +146,14 @@
             ticketCard.className = "bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden";
             ticketCard.innerHTML = `
                <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
-                 <div>
-                   <span class="text-blue-100 text-sm">หมายเลขคิว</span>
-                   <h2 class="text-3xl font-bold tracking-wider">#${booking.booking_id}</h2>
-                 </div>
+                  <div>
+                    <span class="text-blue-100 text-sm">หมายเลขคิว</span>
+                    <h2 class="text-4xl font-bold tracking-wider">#${booking.queue_number || '--'}</h2>
+                    <div class="mt-2 bg-blue-700/40 px-3 py-1 rounded-lg border border-blue-400/30 inline-flex items-center gap-1.5">
+                      <span class="text-xs font-bold text-white tracking-wide uppercase">BookingID:</span>
+                      <span class="text-sm font-mono font-bold text-white">${booking.booking_id}</span>
+                    </div>
+                  </div>
                  <div class="text-right">
                    <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColor}">
                      ${statusText}
@@ -141,8 +198,11 @@
                     </div>
                     
                     ${booking.status === 'รอรับบริการ' ? `
-                    <div class="w-full sm:w-auto">
-                      <button onclick="cancelBooking(${booking.booking_id})" class="w-full sm:w-auto text-red-500 hover:text-white hover:bg-red-500 text-sm font-medium px-6 py-2 rounded-lg transition-all border border-red-200">
+                    <div class="w-full sm:w-auto flex items-center gap-3 justify-center sm:justify-start">
+                      <a href="/booking?reschedule=${booking.booking_id}" class="text-yellow-600 hover:text-white hover:bg-yellow-500 text-sm font-medium px-6 py-2 rounded-lg transition-all border border-yellow-200">
+                        เลื่อนนัด
+                      </a>
+                      <button onclick="cancelBooking(${booking.booking_id})" class="text-red-500 hover:text-white hover:bg-red-500 text-sm font-medium px-6 py-2 rounded-lg transition-all border border-red-200">
                         ยกเลิกคิว
                       </button>
                     </div>
@@ -206,14 +266,14 @@
         const result = await response.json();
         
         if (response.ok && result.status === 'success') {
-          alert('ยกเลิกคิวสำเร็จ');
-          window.location.reload(); // โหลดหน้าใหม่เพื่อแสดงข้อมูลล่าสุด
+          showToast('ยกเลิกคิวสำเร็จ', 'success');
+          setTimeout(() => window.location.reload(), 1500); // โหลดหน้าใหม่เพื่อให้เห็น Toast ก่อน
         } else {
-          alert(result.message || 'เกิดข้อผิดพลาดในการยกเลิกคิว');
+          showToast(result.message || 'เกิดข้อผิดพลาดในการยกเลิกคิว', 'error');
         }
       } catch (error) {
         console.error('Error cancelling booking:', error);
-        alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+        showToast('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'error');
       }
     }
   }

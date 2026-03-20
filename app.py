@@ -24,6 +24,14 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+    # ตรวจสอบและเพิ่ม column queue_number หากยังไม่มี (Simple Migration)
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("ALTER TABLE booking ADD COLUMN queue_number INTEGER"))
+        db.session.commit()
+        print("Column 'queue_number' added to 'booking' table.")
+    except Exception:
+        db.session.rollback()
 
 # Register Blueprints
 app.register_blueprint(user_bp)
