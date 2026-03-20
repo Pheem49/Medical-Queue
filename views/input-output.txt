@@ -1,0 +1,268 @@
+================================================================================
+ระบบจัดการคิวและการจองสำหรับแอดมินและคนไข้ (Medical Queue All Routes) 
+อธิบายเส้นทางการไหลของข้อมูล (Data Flow: Input -> Processing -> Output) ของทุกไฟล์ในโฟลเดอร์ views/
+================================================================================
+
+================================================================================
+ไฟล์: views/booking_management_routes.py
+(ตาราง Booking: สำหรับแอดมินจัดการคิวและประวัติ)
+================================================================================
+1. GET /staff/patients : เลย์เอาต์ Dashboard ฝั่งแอดมิน
+[Input]    Session: `admin_id`
+[Process]  เช็คว่า Admin ล็อกอินแล้วหรือไม่
+[Output]   Render HTML หรือ Redirect StaffLogin
+
+2. GET /staff/history : เลย์เอาต์หน้าประวัติฝั่งแอดมิน
+[Input]    Session: `admin_id`
+[Process]  เช็คว่า Admin ล็อกอินแล้วหรือไม่
+[Output]   Render HTML หรือ Redirect StaffLogin
+
+3. GET /api/admin/bookings : ดึงรายการคิวนัด
+[Input]    Query String: `date`
+[Process]  เรียก `get_all_bookings_for_admin(date)` ดึงข้อมูลจากฐานข้อมูลพร้อมคำอ่านภาษาไทย
+[Output]   JSON (Array of bookings)
+
+4. PUT /api/admin/bookings/<booking_id>/status : อัปเดตสถานะคิว
+[Input]    URL Path: `booking_id`, JSON Body: `status`
+[Process]  อัปเดตฟิลด์ booking_Status ใน DB ผ่าน Service
+[Output]   JSON ของ booking ที่อัปเดตแล้ว หรือ Error 400/404
+
+5. DELETE /api/bookings/<booking_id> : ลบคิว
+[Input]    URL Path: `booking_id`
+[Process]  ลบตารางการจองและอัปเดตช่องเวลา `slot.current_booking` ลง 1
+[Output]   JSON ยืนยันการลบ หรือ Error 404
+
+6. GET /api/admin/bookings/<booking_id> : ดึงคิว 1 คิวสำหรับหน้าสแกน
+[Input]    URL Path: `booking_id`
+[Process]  Join ข้อมูล 5 ตาราง (Booking, Slot, Doctor, Dept, User) และเพิ่มคำอ่านภาษาไทย
+[Output]   JSON ข้อมูลเจาะลึก 1 คิว
+
+7. GET /api/admin/history : ดึงประวัติคิวทั้งหมด
+[Input]    Session: `admin_id`
+[Process]  เช็คสิทธิ์แอดมิน และเรียงข้อมูลที่ Join ล่าสุดไว้ข้างบน
+[Output]   JSON ประวัติทั้งหมด
+
+
+================================================================================
+ไฟล์: views/admin_auth_routes.py
+(ตาราง Admin: สำหรับจัดการการเข้าสู่ระบบของเจ้าหน้าที่)
+================================================================================
+1. GET /staff/login : หน้าเข้าสู่ระบบ
+[Input]    Session: ตรวจสอบ `admin_id`, `user_id`
+[Process]  ถ้าล็อกอินอยู่แล้วให้ข้ามหน้านี้ไปที่หน้า Home
+[Output]   Render HTML หน้า staff_login
+
+2. POST /api/admin/login : ประมวลผลล๊อกอินเจ้าหน้าที่
+[Input]    JSON/Form Body: `username` (หรือ `employee_id`), `password`
+[Process]  นำไปตรวจสอบกับฐานข้อมูลด้วย verify_admin_login() และบันทึก Session
+[Output]   JSON 200 (สำเร็จ) หรือ JSON 401 (ข้อมูลผิด)
+
+3. API (DELETE/POST/GET) /api/logout : ล็อกเอาท์
+[Input]    HTTP Request Method
+[Process]  เรียกคำสั่ง `session.clear()` เพื่อล้างข้อมูลบันทึกตัวตนทั้งหมด
+[Output]   Redirect ไปหน้า Home (ถ้า GET) หรือ JSON 200 (สำเร็จ)
+
+
+================================================================================
+ไฟล์: views/booking_routes.py
+(ตาราง Booking: สำหรับคนไข้ใช้งาน)
+================================================================================
+1. GET /booking : หน้าปฏิทินแสดงคิว
+[Input]    Session: `user_id`, Query String: `reschedule`
+[Process]  เช็คข้อมูลการเลื่อนคิวเก่า และตรวจสอบคิวปัจจุบันที่กำลังรอรับบริการ (active_booking) เพื่อห้ามจองซ้อน
+[Output]   Render HTML หน้า booking.html 
+
+2. GET /booking/confirm : หน้ายืนยันการจอง
+[Input]    Session: `user_id`, Query String: `slot_id`, `detail`, `reschedule`
+[Process]  เช็คคิวซ้อนทับ เช็คการจองล่วงหน้าขั้นต่ำ 1 วัน ดึงข้อมูลผู้ป่วย แพทย์ รพ.
+[Output]   Render HTML หน้า confirm_booking.html พร้อมข้อมูลที่เตรียมให้
+
+3. POST /api/bookings : จองคิว/ขอขึ้นคิวใหม่
+[Input]    Session: `user_id`, JSON Body: `slot_id`, `detail`
+[Process]  เช็คคิวค้าง เรียก `create_booking()` สร้างหมายเลขคิวและรับคิวอาร์โค้ด
+[Output]   JSON สร้างการจองใหม่สำเร็จ (201)
+
+4. PUT /api/booking/<booking_id>/reschedule : เลื่อนนัด
+[Input]    URL Path: `booking_id`, Session: `user_id`, JSON Body: `slot_id`, `detail`
+[Process]  เรียก Service เปลี่ยนข้อมูล Slot และเปลี่ยนเวลาคิว
+[Output]   JSON 200 ยืนยันการเปลี่ยนแปลงข้อมูล
+
+5. GET /mytickets & /history : หน้าประวัติและการจอง
+[Input]    Request พื้นฐาน
+[Process]  None (แค่ส่งหน้า)
+[Output]   Render HTML
+
+6. GET /api/booking/<booking_id> : ดูรายละเอียดคิวตัวเองเจาะจง
+[Input]    URL Path: `booking_id`, Session: `user_id`
+[Process]  หาข้อมูลการจองเฉพาะของ ID ตัวเอง 
+[Output]   JSON รายละเอียดการจองของ User คนนี้ 
+
+7. POST /api/booking/<booking_id>/cancel : ขอยกเลิกนัด
+[Input]    URL Path: `booking_id`, Session: `user_id`
+[Process]  เรียก `cancel_booking()` ลบคิวผู้ป่วย
+[Output]   JSON 200 (สำเร็จ) หรือ 400 (ล้มเหลว)
+
+8. GET /api/history : ประวัติย้อนหลังคนไข้
+[Input]    Session: `user_id`
+[Process]  หาประวัติที่ผูกกับ `user_id` คนไข้คนนี้
+[Output]   JSON อาร์เรย์ของข้อมูลประวัติ
+
+9. GET /api/doctor/<doctor_id>/available-dates : ดูตารางหมอที่ว่าง
+[Input]    URL Path: `doctor_id`
+[Process]  เรียกหาเวลาที่หมอยังเหลือที่สามารถรับตรวจได้
+[Output]   JSON อาเรย์ของวันที่ (dates)
+
+
+================================================================================
+ไฟล์: views/department_routes.py
+(ตาราง Department: จัดการแผนกของโรงพยาบาล)
+================================================================================
+1. GET / : หน้าหลักของเว็บ (Home)
+[Input]    Session: `user_id`
+[Process]  เช็คว่ามีคิวตรวจรอผู้ใช้งานอยู่หรือไม่ (active_booking)
+[Output]   Render HTML (home.html) ส่งตัวแปร has_active_booking เข้าไป
+
+2. GET /api/departments : ดึงลิสต์แผนกทั้งหมด
+[Input]    Request พื้นฐาน
+[Process]  เรียก `get_all_departments()`
+[Output]   JSON รายชื่อแผนก
+
+3. POST /api/admin/departments : สร้างแผนกใหม่ (Admin)
+[Input]    JSON Body: `name`
+[Process]  เช็คข้อมูลและสร้างในฐานข้อมูล
+[Output]   JSON สำเร็จ พร้อมรหัสแผนก `id`
+
+4. PUT /api/admin/departments/<department_id> : แก้ไขข้อมูลแผนก
+[Input]    URL Path: `department_id`, JSON Body: `name`
+[Process]  หาไอดีและเปลี่ยนชื่อแผนก
+[Output]   JSON อัปเดตสำเร็จ หรือ 404
+
+
+================================================================================
+ไฟล์: views/doctor_department_routes.py
+(ตาราง DoctorToDepartment: จัดการเชื่อมแผนกกับหมอ Many-to-Many)
+================================================================================
+1. GET /api/department/<department_id>/doctors : ค้นหาหมอในแผนก
+[Input]    URL Path: `department_id`
+[Process]  หาหมอทั้งหมดที่เชื่อมโยงกับไอดีแผนกนี้
+[Output]   JSON ข้อมูลหมอต่างๆ
+
+2. GET /api/doctor/<doctor_id>/departments : ค้นหาแผนกจากข้อมูลหมอ
+[Input]    URL Path: `doctor_id`
+[Process]  ให้หารายชื่อแผนกต่างๆ ที่คุณหมอประจำเป็นแพทย์อยู่
+[Output]   JSON รายชื่อแผนก
+
+3. POST /api/admin/assign_doctor : เพิ่มหมอเข้าแผนก (จับคู่)
+[Input]    JSON Body: `doctor_id`, `department_id`
+[Process]  สร้าง Record ใหม่ในตารางความสัมพันธ์
+[Output]   JSON 201 เพิ่มลิงค์สำเร็จ หรือ 409 ซ้ำ
+
+4. DELETE /api/admin/remove_doctor_dept : เอาหมอออกจากแผนก (ยกเลิกจับคู่)
+[Input]    JSON Body: `doctor_id`, `department_id`
+[Process]  สั่งลบความสัมพันธ์
+[Output]   JSON 200 ยืนยันการลบ
+
+
+================================================================================
+ไฟล์: views/doctor_routes.py
+(ตาราง Doctor: จัดการประวัติแพทย์)
+================================================================================
+1. GET /staff/doctors : เลย์เอาต์หน้าจัดการหมอของแอดมิน
+[Input]    Request
+[Output]   Render HTML "admin/doctors.html"
+
+2. GET /api/doctors : ดึงรายชื่อหมอฝั่งหน้าบ้าน
+[Input]    Request
+[Output]   JSON รายชื่อแพทย์ปกติ
+
+3. GET /api/admin/doctors : ดึงรายชื่อหมอหลังบ้าน
+[Input]    Request
+[Output]   JSON รายชื่อแพทย์ของแอดมินพร้อมข้อมูลลึกกว่า
+
+4. POST /api/admin/doctors : เพิ่มหมอใหม่
+[Input]    JSON: `firstname`, `lastname`, `doctor_id`, `specialist`, `status`, `schedule`, `department_ids`
+[Process]  สร้างแพทย์คนใหม่และจับคู่กับแผนก (ถ้ามีส่งมา)
+[Output]   JSON 201
+
+5. PUT /api/admin/doctors/<doctor_id> : แก้ไขหมอ
+[Input]    URL: `doctor_id`, JSON: ข้อมูลที่ต้องการอัปเดต
+[Process]  นำเข้า Service บันทึกการอัปเดต
+[Output]   JSON สำเร็จ หรือ 404 
+
+6. DELETE /api/admin/doctors/<doctor_id> : ลบหมอออกจากระบบ
+[Input]    URL: `doctor_id`
+[Process]  ไปลบข้อมูลแพทย์คนนี้ออกจากฐานข้อมูล
+[Output]   JSON สำเร็จ หรือ 404 (หาไม่เจอ)
+
+
+================================================================================
+ไฟล์: views/slot_routes.py
+(ตาราง AppointmentSlot: จัดการรอบคิวนัดเวลา)
+================================================================================
+1. GET /staff/checkin : หน้าสแกน QR 
+[Input]    Request
+[Output]   Render HTML "admin/scanner.html"
+
+2. POST /api/admin/slots : สร้างช่องเวลารับคิว
+[Input]    JSON: `doctor_id`, `department_id`, `slot_date`, `start_time`, `end_time`, `max_capacity`
+[Process]  เพิ่ม Slot นัดใหม่
+[Output]   JSON success หรือ Error 400
+
+3. GET /api/admin/slots : ดึงช่วงรับคิว
+[Input]    Query: `doctor_id`, `date`
+[Process]  หาสล็อตเวลาของคุณหมอและวันนั้นๆ
+[Output]   JSON รายการ Slots 
+
+4. PUT /api/admin/slots/<slot_id>/status : เปิดปิดสล็อตเวลา
+[Input]    URL: `slot_id`, JSON: `status`
+[Process]  อัปเดตช่องสถานะของเวลา
+[Output]   JSON สำเร็จ หรือ 404
+
+5. DELETE /api/admin/slots/<slot_id> : ลบสล็อตเวลา
+[Input]    URL: `slot_id`
+[Process]  ลบตาราง (ต้องไม่โดนจองคิวไว้)
+[Output]   JSON สำเร็จ หรือ Error 400
+
+6. POST /api/scan/decrypt : API เครื่องสแกน QR Code ถอดรหัสคิวคนป่วย
+[Input]    Session: `admin_id`, JSON Body: `token`
+[Process]  1. เช็คว่ามี admin_id ให้สิทธิ์ใช้
+           2. ถอดรหัส token เพื่อหาเลขบัตรประชาชน `national_id`
+           3. หา User ID ของเลขบัตรปปช. นี้
+           4. หา "คิวที่กำลังรอตรวจ (active booking)" ของ User นี้ 
+           5. ดึงข้อมูล 4 ตาราง
+[Output]   JSON 200 รายละเอียดการจอง, ชื่อหมอ, เวลานัด เพื่อเช็คอินเข้ารับรักษา 
+           หรือ JSON Errors 400, 403, 404
+
+
+================================================================================
+ไฟล์: views/user_routes.py
+(ตาราง User: จัดการคนไข้, ลงทะเบียน)
+================================================================================
+1. GET /login, /register, /terms, /privacy : หน้า Layout คนไข้
+[Input]    Request
+[Process]  None
+[Output]   Render HTML (ตามชื่อ Template)
+
+2. GET /notification : แจ้งเตือนคนไข้
+[Input]    Session: `user_id`
+[Process]  หา 5 คิวล่าสุดของผู้ป่วย ไปเปิดป็อปอัปแจ้งเตือน
+[Output]   Render HTML หน้า notification 
+
+3. POST /api/register : สมัครสมาชิก
+[Input]    JSON หรือ Form: ข้อมูลส่วนตัว เช่น รหัสปปช, รูป, ซื่อ, การตั้งรหัสผ่าน, วันเกิด
+[Process]  1. จัด Map ข้อมูลหน้าบ้านให้เข้ากับฟิลด์หลังบ้าน 
+           2. ตรวจการคอนเฟิร์มรหัส 
+           3. เซฟเข้า DB ผู้ป่วยใหม่
+[Output]   JSON 201 (ถ้า Frontend เป็น JSON) 
+           หรือ Redirect กลับไป Login พร้อมส่ง Flash (สำหรับ Form ปกติ)
+
+4. POST /api/login : ล็อกอินผู้ป่วย
+[Input]    JSON หรือ Form: `identifier` (อีเมล/เลขปปช.), `password`
+[Process]  นำไปเปรียบเทียบรหัสผ่านด้วย `login_user` 
+           ถ้าถูก -> สร้าง Session เก็บ `user_id`, `user_name`, `email` ของคนไข้
+[Output]   JSON 200 ข้อมูลยูสเซอร์ หรือ Redirect (ถ้าเป็น Form)
+
+5. PUT /api/user/profile : อัปเดตข้อมูลผู้ป่วย
+[Input]    Session: `user_id`, JSON: ข้อมูลที่แก้ไข
+[Process]  เช็คล็อกอินและไปอัปเดตเรคคอร์ดของ `user.id`
+[Output]   JSON 200 สำเร็จ หรือ 400/401 ล้มเหลว
